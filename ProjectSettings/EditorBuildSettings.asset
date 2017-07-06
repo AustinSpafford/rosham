@@ -6,5 +6,5 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/GeneticRosham.unity
+    path: Assets/GeneticRosham/GeneticRoshamScene.unity
     guid: 5e33ee907d7f013498c2fe0595c0e8e4
