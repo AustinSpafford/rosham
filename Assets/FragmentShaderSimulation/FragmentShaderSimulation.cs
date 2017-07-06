@@ -8,6 +8,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 	public int TextureHeight = 512;
 	public int TextureDepthBits = 0;
 	public RenderTextureFormat TextureFormat = RenderTextureFormat.ARGBFloat;
+	public TextureWrapMode TextureWrapMode = TextureWrapMode.Clamp;
 
 	public RenderTexture DisplayTexture = null;
 	
@@ -28,6 +29,8 @@ public class FragmentShaderSimulation : MonoBehaviour
 					TextureHeight, 
 					TextureDepthBits, 
 					TextureFormat);
+
+			DisplayTexture.wrapMode = TextureWrapMode;
 		}
 	}
 
@@ -82,20 +85,23 @@ public class FragmentShaderSimulation : MonoBehaviour
 		if (DisplayTexture.width != TextureWidth ||
 			DisplayTexture.height != TextureHeight ||
 			DisplayTexture.depth != TextureDepthBits ||
-			DisplayTexture.format != TextureFormat)
+			DisplayTexture.format != TextureFormat ||
+			DisplayTexture.wrapMode != TextureWrapMode)
 		{
 			if (DebugLoggingEnabled)
 			{
 				Debug.LogFormat(
-					"Changing the output texture from ({0}, {1}, {2}, {3}) to ({4}, {5}, {6}, {7}).",
+					"Changing the output texture from ({0}, {1}, {2}, {3}, {4}) to ({5}, {6}, {7}, {8}, {9}).",
 					DisplayTexture.width,
 					DisplayTexture.height,
 					DisplayTexture.depth,
 					DisplayTexture.format,
+					DisplayTexture.wrapMode,
 					TextureWidth,
 					TextureHeight,
 					TextureDepthBits,
-					TextureFormat);
+					TextureFormat,
+					TextureWrapMode);
 			}
 
 			DisplayTexture.Release();
@@ -103,6 +109,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 			DisplayTexture.height = TextureHeight;
 			DisplayTexture.depth = TextureDepthBits;
 			DisplayTexture.format = TextureFormat;
+			DisplayTexture.wrapMode = TextureWrapMode;
 			DisplayTexture.Create();
 		}
 	}
@@ -142,7 +149,8 @@ public class FragmentShaderSimulation : MonoBehaviour
 			inoutSimulationTexture.width != DisplayTexture.width ||
 			inoutSimulationTexture.height != DisplayTexture.height ||
 			inoutSimulationTexture.depth != DisplayTexture.depth ||
-			inoutSimulationTexture.format != DisplayTexture.format)
+			inoutSimulationTexture.format != DisplayTexture.format ||
+			inoutSimulationTexture.wrapMode != DisplayTexture.wrapMode)
 		{
 			if (DebugLoggingEnabled)
 			{
@@ -157,6 +165,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 			inoutSimulationTexture.height = DisplayTexture.height;
 			inoutSimulationTexture.depth = DisplayTexture.depth;
 			inoutSimulationTexture.format = DisplayTexture.format;
+			inoutSimulationTexture.wrapMode = DisplayTexture.wrapMode;
 			inoutSimulationTexture.Create();
 			
 			Graphics.Blit(DisplayTexture, inoutSimulationTexture);

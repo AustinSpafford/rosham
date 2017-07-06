@@ -243,6 +243,7 @@ MonoBehaviour:
   TextureHeight: 512
   TextureDepthBits: 0
   TextureFormat: 11
+  TextureWrapMode: 1
   DisplayTexture: {fileID: 8400000, guid: 86d792cfa4fa42340a3c686bdf32f360, type: 2}
   InitializationMaterial: {fileID: 2100000, guid: 4ee72eceb01cc1b49ad50c87bca4f185,
     type: 2}
@@ -373,7 +374,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92330b412abd8b4439c2ddee47e725cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DebugLoggingEnabled: 0
 --- !u!4 &1930285993
 Transform:
   m_ObjectHideFlags: 0
