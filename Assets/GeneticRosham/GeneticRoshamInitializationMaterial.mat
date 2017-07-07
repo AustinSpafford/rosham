@@ -71,6 +71,6 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseSimulationColor: {r: 0.019896213, g: 0.6764706, b: 0.019896213, a: 1}
+    - _BaseSimulationColor: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

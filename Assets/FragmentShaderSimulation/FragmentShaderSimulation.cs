@@ -16,45 +16,42 @@ public class FragmentShaderSimulation : MonoBehaviour
 	public Material IterationMaterial = null;
 	public Material DisplayMaterial = null;
 	
-	public bool DebugDisplayRawSimulation = false;
 	public bool DebugLoggingEnabled = false;
+	public bool DebugDisplayRawSimulation = false;
+	public bool DebugInitializeOnResize = false;
+	public bool DebugSingleStepOnSpace = false;
 
-	public void Start()
+	public void Awake()
 	{
 		if (DisplayTexture == null)
 		{
-			DisplayTexture =
-				new RenderTexture(
-					TextureWidth, 
-					TextureHeight, 
-					TextureDepthBits, 
-					TextureFormat);
-
-			DisplayTexture.wrapMode = TextureWrapMode;
+			CreateOrUpdateRenderTextureConfiguration(ref DisplayTexture, false, "display");
 		}
 	}
 
 	public void Update()
 	{
-		// Make sure the textures are of an appropriate format.
-		{
-			MatchOutputTextureToRequirements();
-			
-			MatchSimulationTextureToDisplayTexture(ref currentSimulationTexture, "current");
-			MatchSimulationTextureToDisplayTexture(ref previousSimulationTexture, "previous");
-		}
+		// Make sure the textures are created and set to the appropriate format.
+		CreateOrUpdateRenderTextureConfiguration(ref DisplayTexture, false, "display");			
+		CreateOrUpdateRenderTextureConfiguration(ref currentSimulationTexture, true, "current_sim");
+		CreateOrUpdateRenderTextureConfiguration(ref previousSimulationTexture, true, "previous_sim");
 
 		// Advance the simulation.
-		if (IterationMaterial != null)
+		if ((IterationMaterial != null) &&
+			((DebugSingleStepOnSpace == false) || Input.GetKeyDown(KeyCode.Space)))
 		{
 			RenderTexture swapTemp = currentSimulationTexture;
 			currentSimulationTexture = previousSimulationTexture;
 			previousSimulationTexture = swapTemp;
+			
+			IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
 
 			Graphics.Blit(
 				previousSimulationTexture,
 				currentSimulationTexture,
 				IterationMaterial);
+
+			simulationIterationIndex++;
 		}
 		else
 		{
@@ -80,59 +77,41 @@ public class FragmentShaderSimulation : MonoBehaviour
 	private RenderTexture currentSimulationTexture = null;
 	private RenderTexture previousSimulationTexture = null;
 
-	private void MatchOutputTextureToRequirements()
-	{
-		if (DisplayTexture.width != TextureWidth ||
-			DisplayTexture.height != TextureHeight ||
-			DisplayTexture.depth != TextureDepthBits ||
-			DisplayTexture.format != TextureFormat ||
-			DisplayTexture.wrapMode != TextureWrapMode)
-		{
-			if (DebugLoggingEnabled)
-			{
-				Debug.LogFormat(
-					"Changing the output texture from ({0}, {1}, {2}, {3}, {4}) to ({5}, {6}, {7}, {8}, {9}).",
-					DisplayTexture.width,
-					DisplayTexture.height,
-					DisplayTexture.depth,
-					DisplayTexture.format,
-					DisplayTexture.wrapMode,
-					TextureWidth,
-					TextureHeight,
-					TextureDepthBits,
-					TextureFormat,
-					TextureWrapMode);
-			}
+	private int simulationIterationIndex = 0;	
 
-			DisplayTexture.Release();
-			DisplayTexture.width = TextureWidth;
-			DisplayTexture.height = TextureHeight;
-			DisplayTexture.depth = TextureDepthBits;
-			DisplayTexture.format = TextureFormat;
-			DisplayTexture.wrapMode = TextureWrapMode;
-			DisplayTexture.Create();
-		}
-	}
-
-	private void MatchSimulationTextureToDisplayTexture(
-		ref RenderTexture inoutSimulationTexture,
+	private void CreateOrUpdateRenderTextureConfiguration(
+		ref RenderTexture inoutTexture,
+		bool isSimulationTexture,
 		string debugTextureName)
 	{
-		if (inoutSimulationTexture == null)
+		if (inoutTexture == null)
 		{
 			if (DebugLoggingEnabled)
 			{
-				Debug.LogFormat("Creating the \"{0}\" simulation texture to match the display texture.", debugTextureName);
+				Debug.LogFormat("Creating the \"{0}\" texture.", debugTextureName);
 			}
 
-			inoutSimulationTexture = 
+			inoutTexture = 
 				new RenderTexture(
-					DisplayTexture.width, 
-					DisplayTexture.height,
-					DisplayTexture.depth,
-					DisplayTexture.format);
+					TextureWidth, 
+					TextureHeight,
+					TextureDepthBits,
+					TextureFormat);
+
+			inoutTexture.wrapMode = TextureWrapMode;
+
+			if (isSimulationTexture)
+			{
+				// Kill mip-mapping with a vengeance, because otherwise it'll completely bork the simulation.
+				inoutTexture.autoGenerateMips = false;
+				inoutTexture.useMipMap = false;
+
+				// Assuming the shader is texel-aligned, this just saves us unecessary texture-reads.
+				inoutTexture.filterMode = FilterMode.Point;
+			}
 			
-			if (InitializationMaterial != null)
+			if (isSimulationTexture &&
+				(InitializationMaterial != null))
 			{
 				if (DebugLoggingEnabled)
 				{
@@ -141,34 +120,49 @@ public class FragmentShaderSimulation : MonoBehaviour
 
 				Graphics.Blit(
 					null, // sourceTexture
-					inoutSimulationTexture,
+					inoutTexture,
 					InitializationMaterial);
 			}
 		}
 		else if (
-			inoutSimulationTexture.width != DisplayTexture.width ||
-			inoutSimulationTexture.height != DisplayTexture.height ||
-			inoutSimulationTexture.depth != DisplayTexture.depth ||
-			inoutSimulationTexture.format != DisplayTexture.format ||
-			inoutSimulationTexture.wrapMode != DisplayTexture.wrapMode)
+			inoutTexture.width != TextureWidth ||
+			inoutTexture.height != TextureHeight ||
+			inoutTexture.depth != TextureDepthBits ||
+			inoutTexture.format != TextureFormat ||
+			inoutTexture.wrapMode != TextureWrapMode)
 		{
 			if (DebugLoggingEnabled)
 			{
-				Debug.LogFormat("Updating the \"{0}\" simulation texture to match the display texture.", debugTextureName);
+				Debug.LogFormat("Updating the \"{0}\" texture.", debugTextureName);
 			}
 			
-			// Attempt to preserve/rescale the simulation's state.
-			Graphics.Blit(inoutSimulationTexture, DisplayTexture);
+			// Use the display texture as a scratch in an attempt to preserve/rescale the simulation state.
+			if (isSimulationTexture)
+			{
+				Graphics.Blit(inoutTexture, DisplayTexture);
+			}
 			
-			inoutSimulationTexture.Release();
-			inoutSimulationTexture.width = DisplayTexture.width;
-			inoutSimulationTexture.height = DisplayTexture.height;
-			inoutSimulationTexture.depth = DisplayTexture.depth;
-			inoutSimulationTexture.format = DisplayTexture.format;
-			inoutSimulationTexture.wrapMode = DisplayTexture.wrapMode;
-			inoutSimulationTexture.Create();
+			inoutTexture.Release();
+			inoutTexture.width = TextureWidth;
+			inoutTexture.height = TextureHeight;
+			inoutTexture.depth = TextureDepthBits;
+			inoutTexture.format = TextureFormat;
+			inoutTexture.wrapMode = TextureWrapMode;
+			inoutTexture.Create();
 			
-			Graphics.Blit(DisplayTexture, inoutSimulationTexture);
+			if (isSimulationTexture)
+			{
+				Graphics.Blit(DisplayTexture, inoutTexture);
+			}
+
+			if (DebugInitializeOnResize &&
+				isSimulationTexture)
+			{
+				Graphics.Blit(
+					null, // sourceTexture
+					inoutTexture,
+					InitializationMaterial);
+			}
 		}
 	}
 }

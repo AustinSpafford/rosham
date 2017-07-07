@@ -3,7 +3,7 @@
 	Properties
 	{
 		// NOTE: No source texture, since this just intializes the simulation from scratch.
-		_BaseSimulationColor("Base Simulation Color", Color) = (0.0, 0.5, 0.0, 1)
+		_BaseSimulationColor("Base Simulation Color", Color) = (0.0, 0.0, 0.0, 1)
 	}
 
 	SubShader
@@ -46,7 +46,14 @@
 
 			float4 FragmentMain(VertexToFragment inputs) : SV_Target
 			{
-				return _BaseSimulationColor;
+				float4 result = _BaseSimulationColor;
+
+				if (distance(inputs.uv, float(0.25)) < 0.1)
+				{
+					result = float4(1, 1, 1, 1);
+				}
+
+				return result;
 			}
 
 			ENDCG
