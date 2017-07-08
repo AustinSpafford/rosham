@@ -45,6 +45,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 			previousSimulationTexture = swapTemp;
 			
 			IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+			IterationMaterial.SetFloat("_DeltaTime", Time.deltaTime);
 
 			Graphics.Blit(
 				previousSimulationTexture,

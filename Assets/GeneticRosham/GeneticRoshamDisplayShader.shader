@@ -3,6 +3,8 @@
 	Properties
 	{
 		_MainTex("Simulation Texture", 2D) = "black" {}
+	
+		_ImmunitySaturationEffect("Immunity Saturation Effect", Range(0, 1)) = 1.0
 	}
 
 	SubShader
@@ -19,6 +21,7 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
+			#include "..\ShaderIncludes\ColorSpaces.cginc"
 
 			struct appdata // TODO: Can this be renamed?
 			{
@@ -31,6 +34,8 @@
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
 			};
+
+			uniform float _ImmunitySaturationEffect;
 
 			VertexToFragment VertexMain(
 				appdata vertexData)
@@ -46,7 +51,11 @@
 
 			float4 FragmentMain(VertexToFragment inputs) : SV_Target
 			{
-				return tex2D(_MainTex, inputs.uv);
+				float4 simState = tex2D(_MainTex, inputs.uv);
+
+				return float4(
+					HsbToRgb(float3(simState.x, (1 - (_ImmunitySaturationEffect * simState.y)), simState.z)),
+					1);
 			}
 
 			ENDCG

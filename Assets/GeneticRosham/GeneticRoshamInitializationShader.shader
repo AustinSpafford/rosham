@@ -3,7 +3,6 @@
 	Properties
 	{
 		// NOTE: No source texture, since this just intializes the simulation from scratch.
-		_BaseSimulationColor("Base Simulation Color", Color) = (0.0, 0.0, 0.0, 1)
 	}
 
 	SubShader
@@ -20,6 +19,7 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
+			#include "..\ShaderIncludes\Random.cginc"
 
 			struct appdata // TODO: Can this be renamed?
 			{
@@ -32,8 +32,6 @@
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
 			};
-			
-			uniform float4 _BaseSimulationColor;
 
 			VertexToFragment VertexMain(
 				appdata vertexData)
@@ -46,11 +44,11 @@
 
 			float4 FragmentMain(VertexToFragment inputs) : SV_Target
 			{
-				float4 result = _BaseSimulationColor;
+				float4 result = float4(0, 0, 0, 0);
 
-				if (distance(inputs.uv, float(0.25)) < 0.1)
+				if (distance(inputs.uv, float(0.5)) < 0.01)
 				{
-					result = float4(1, 1, 1, 1);
+					result = float4(Random(inputs.uv), 1, 1, 0);
 				}
 
 				return result;
