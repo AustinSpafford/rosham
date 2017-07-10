@@ -15,6 +15,8 @@ public class FragmentShaderSimulation : MonoBehaviour
 	public Material InitializationMaterial = null;
 	public Material IterationMaterial = null;
 	public Material DisplayMaterial = null;
+
+	public int IterationsPerFrame = 1;
 	
 	public bool DebugLoggingEnabled = false;
 	public bool DebugDisplayRawSimulation = false;
@@ -40,19 +42,22 @@ public class FragmentShaderSimulation : MonoBehaviour
 		if ((IterationMaterial != null) &&
 			((DebugSingleStepOnSpace == false) || Input.GetKeyDown(KeyCode.Space)))
 		{
-			RenderTexture swapTemp = currentSimulationTexture;
-			currentSimulationTexture = previousSimulationTexture;
-			previousSimulationTexture = swapTemp;
+			for (int index = 0; index < IterationsPerFrame; index++)
+			{
+				RenderTexture swapTemp = currentSimulationTexture;
+				currentSimulationTexture = previousSimulationTexture;
+				previousSimulationTexture = swapTemp;
 			
-			IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
-			IterationMaterial.SetFloat("_DeltaTime", Time.deltaTime);
+				IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+				IterationMaterial.SetFloat("_DeltaTime", Time.deltaTime);
 
-			Graphics.Blit(
-				previousSimulationTexture,
-				currentSimulationTexture,
-				IterationMaterial);
+				Graphics.Blit(
+					previousSimulationTexture,
+					currentSimulationTexture,
+					IterationMaterial);
 
-			simulationIterationIndex++;
+				simulationIterationIndex++;
+			}
 		}
 		else
 		{

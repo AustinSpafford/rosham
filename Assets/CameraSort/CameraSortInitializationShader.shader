@@ -20,6 +20,7 @@
 			
 			#include "UnityCG.cginc"
 			#include "..\ShaderIncludes\ColorSpaces.cginc"
+			#include "..\ShaderIncludes\Random.cginc"
 
 			struct appdata // TODO: Can this be renamed?
 			{
@@ -44,13 +45,18 @@
 
 			float4 FragmentMain(VertexToFragment inputs) : SV_Target
 			{
-				return 
-					float4(
-						HsbToRgb(
-							inputs.uv.x,
-							smoothstep(1.0, 0.5, inputs.uv.y),
-							smoothstep(0.0, 0.5, inputs.uv.y)),
-						1.0);
+				float4 result = 1;
+
+				result = float4(
+					HsbToRgb(
+						inputs.uv.x,
+						pow(smoothstep(1.0, 0.5, inputs.uv.y), 0.5),
+						pow(smoothstep(0.0, 0.5, inputs.uv.y), 0.5)),
+					1.0);
+
+				//result = float4(Random(inputs.uv + 1), Random(inputs.uv + 2), Random(inputs.uv + 3), 1);
+
+				return result;
 			}
 
 			ENDCG

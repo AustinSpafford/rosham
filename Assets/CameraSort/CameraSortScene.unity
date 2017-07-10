@@ -244,12 +244,13 @@ MonoBehaviour:
   TextureHeight: 512
   TextureDepthBits: 0
   TextureFormat: 11
-  TextureWrapMode: 0
+  TextureWrapMode: 1
   DisplayTexture: {fileID: 8400000, guid: 86d792cfa4fa42340a3c686bdf32f360, type: 2}
   InitializationMaterial: {fileID: 2100000, guid: 71b7d313c27bf904a83812f0d7eaf0fd,
     type: 2}
   IterationMaterial: {fileID: 2100000, guid: a1fd98144cfd8ef41be416bc4b198620, type: 2}
   DisplayMaterial: {fileID: 0}
+  IterationsPerFrame: 4
   DebugLoggingEnabled: 0
   DebugDisplayRawSimulation: 0
   DebugInitializeOnResize: 0

@@ -55,10 +55,59 @@
 			float4 FragmentMain(
 				VertexToFragment inputs) : SV_Target
 			{
-				float4 self = tex2D(_MainTex, inputs.uv);
-				float4 webcam = tex2D(_WebcamTex, inputs.uv);
+				// Create alternating columns and rows of +/- multipliers.
+				float2 partnerParities = float2(
+					sign(frac(0.5 * (inputs.uv.x * _MainTex_TexelSize.z)) - 0.5),
+					sign(frac(0.5 * (inputs.uv.y * _MainTex_TexelSize.w)) - 0.5));
 
-				return lerp(self, webcam, 0.02);
+				float2 neighborOffset;
+				{
+					float neighboringCycleFraction = frac(0.25 * float(_SimulationIterationIndex));
+					
+					if (neighboringCycleFraction < 0.1) // (cycle == 0.0)
+					{
+						// Right
+						neighborOffset = float2((_MainTex_TexelSize.x * partnerParities.x), 0);
+					}
+					else if (neighboringCycleFraction < 0.3) // (cycle == 0.25)
+					{
+						// Up
+						neighborOffset = float2(0, (_MainTex_TexelSize.y * partnerParities.y));
+					}
+					else if (neighboringCycleFraction < 0.6) // (cycle == 0.5)
+					{
+						// Left
+						neighborOffset = float2((-1 * _MainTex_TexelSize.x * partnerParities.x), 0);
+					}
+					else // (cycle == 0.75)
+					{
+						// Down
+						neighborOffset = float2(0, (-1 * _MainTex_TexelSize.y * partnerParities.y));
+					}
+				}
+
+				float2 mainCoord = inputs.uv;
+				float2 webcamCoord = float2((1.0 - inputs.uv.x), inputs.uv.y);
+				
+				float4 selfMain = tex2D(_MainTex, mainCoord);
+				float4 selfWebcam = tex2D(_WebcamTex, webcamCoord);
+				float4 partnerMain = tex2D(_MainTex, (mainCoord + neighborOffset));
+				float4 partnerWebcam = tex2D(_WebcamTex, (webcamCoord + neighborOffset));
+
+				float costStaying = (
+					distance(selfMain, selfWebcam) +
+					distance(partnerMain, partnerWebcam));
+
+				float costSwitching = (
+					distance(selfMain, partnerWebcam) +
+					distance(partnerMain, selfWebcam));
+
+				float4 result =
+					(costStaying <= costSwitching) ?
+						selfMain :
+						partnerMain;
+
+				return result;
 			}
 
 			ENDCG
