@@ -7,3 +7,11 @@ float3 HsbToRgb(
 	rgb = (rgb * rgb * (3 - (2 * rgb)));
 	return (hsbColor.z * lerp(float3(1, 1, 1), rgb, hsbColor.y));
 }
+
+float3 HsbToRgb(
+	float hueFraction,
+	float saturationFraction,
+	float brightnessFraction)
+{
+	return HsbToRgb(float3(hueFraction, saturationFraction, brightnessFraction));
+}

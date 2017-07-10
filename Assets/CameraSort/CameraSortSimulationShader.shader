@@ -1,8 +1,9 @@
-﻿Shader "Custom/GeneticRoshamInitialzationShader"
+﻿Shader "Custom/CameraSortSimulationShader"
 {
 	Properties
 	{
-		// NOTE: No source texture, since this just intializes the simulation from scratch.
+		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
+		_WebcamTex("Webcam Texture", 2D) = "black" {}
 	}
 
 	SubShader
@@ -33,6 +34,9 @@
 				float4 vertex : SV_POSITION;
 			};
 
+			uniform int _SimulationIterationIndex;
+			uniform float _DeltaTime;
+
 			VertexToFragment VertexMain(
 				appdata vertexData)
 			{
@@ -41,22 +45,20 @@
 				result.uv = vertexData.uv;
 				return result;
 			}
+			
+			sampler2D _MainTex;
+			uniform half4 _MainTex_TexelSize;
+			
+			sampler2D _WebcamTex;
+			uniform half4 _WebcamTex_TexelSize;
 
-			float4 FragmentMain(VertexToFragment inputs) : SV_Target
+			float4 FragmentMain(
+				VertexToFragment inputs) : SV_Target
 			{
-				float4 result = float4(0, 0, 0, 0);
+				float4 self = tex2D(_MainTex, inputs.uv);
+				float4 webcam = tex2D(_WebcamTex, inputs.uv);
 
-				//if ((Random(inputs.uv) + Random(inputs.uv + 1)) < 0.005)
-				if (distance(inputs.uv, 0.5) < 0.01)
-				{
-					float2 delta = (inputs.uv - 0.5);
-					//result = float4(Random(inputs.uv + 2), 1, 1, 0);
-					result = float4((atan2(delta.x, delta.y) / radians(360)), 1, 1, 0);
-				}
-
-				result = float4(Random(inputs.uv + 3), 1, 1, 0);
-
-				return result;
+				return lerp(self, webcam, 0.02);
 			}
 
 			ENDCG

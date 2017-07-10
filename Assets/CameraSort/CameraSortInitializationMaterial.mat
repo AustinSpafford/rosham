@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: GeneticRoshamDisplayMaterial
-  m_Shader: {fileID: 4800000, guid: 439691c94f69353458e760952e879d67, type: 3}
+  m_Name: CameraSortInitializationMaterial
+  m_Shader: {fileID: 4800000, guid: 7a1e0040e6b58e34ca668ec1b13de880, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -61,8 +61,6 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _ImmunityEffectFraction: 0
-    - _ImmunitySaturationEffect: 0
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
