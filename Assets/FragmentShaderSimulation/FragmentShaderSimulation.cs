@@ -42,6 +42,8 @@ public class FragmentShaderSimulation : MonoBehaviour
 		if ((IterationMaterial != null) &&
 			((DebugSingleStepOnSpace == false) || Input.GetKeyDown(KeyCode.Space)))
 		{
+			float iterationDeltaTime = (Time.deltaTime / (float)IterationsPerFrame);
+
 			for (int index = 0; index < IterationsPerFrame; index++)
 			{
 				RenderTexture swapTemp = currentSimulationTexture;
@@ -49,7 +51,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 				previousSimulationTexture = swapTemp;
 			
 				IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
-				IterationMaterial.SetFloat("_DeltaTime", Time.deltaTime);
+				IterationMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
 
 				Graphics.Blit(
 					previousSimulationTexture,

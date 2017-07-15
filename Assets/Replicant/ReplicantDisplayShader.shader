@@ -1,8 +1,10 @@
-﻿Shader "Custom/GeneticRoshamInitialzationShader"
+﻿Shader "Custom/ReplicantDisplayShader"
 {
 	Properties
 	{
-		// NOTE: No source texture, since this just intializes the simulation from scratch.
+		_MainTex("Simulation Texture", 2D) = "black" {}
+	
+		_ImmunityEffectFraction("Immunity Saturation Effect", Range(0, 1)) = 1.0
 	}
 
 	SubShader
@@ -19,7 +21,7 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
-			#include "..\ShaderIncludes\Random.cginc"
+			#include "..\ShaderIncludes\ColorSpaces.cginc"
 
 			struct appdata // TODO: Can this be renamed?
 			{
@@ -33,6 +35,8 @@
 				float4 vertex : SV_POSITION;
 			};
 
+			uniform float _ImmunityEffectFraction;
+
 			VertexToFragment VertexMain(
 				appdata vertexData)
 			{
@@ -41,22 +45,15 @@
 				result.uv = vertexData.uv;
 				return result;
 			}
+			
+			sampler2D _MainTex;
+			uniform half4 _MainTex_TexelSize;
 
 			float4 FragmentMain(VertexToFragment inputs) : SV_Target
 			{
-				float4 result = float4(0, 0, 0, 0);
+				float4 simState = tex2D(_MainTex, inputs.uv);
 
-				//if ((Random(inputs.uv) + Random(inputs.uv + 1)) < 0.005)
-				if (distance(inputs.uv, 0.5) < 0.01)
-				{
-					float2 delta = (inputs.uv - 0.5);
-					//result = float4(Random(inputs.uv + 2), 1, 1, 0);
-					result = float4(frac(atan2(delta.y, delta.x) / radians(360)), 1, 1, 0);
-				}
-
-				result = float4(Random(inputs.uv + 3), 1, 1, 0);
-
-				return result;
+				return float4(simState.rgb, 1);
 			}
 
 			ENDCG

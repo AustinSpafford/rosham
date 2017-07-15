@@ -5,9 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/CameraSort/CameraSortScene.unity
     guid: 1a4082d7fa9544840bfa2ed5b398b233
   - enabled: 0
     path: Assets/GeneticRosham/GeneticRoshamScene.unity
     guid: 5e33ee907d7f013498c2fe0595c0e8e4
+  - enabled: 1
+    path: Assets/Replicant/ReplicantScene.unity
+    guid: 022a460e99a4d7740bc2b835d94bd08d

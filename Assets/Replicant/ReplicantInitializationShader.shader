@@ -1,4 +1,4 @@
-﻿Shader "Custom/GeneticRoshamInitialzationShader"
+﻿Shader "Custom/ReplicantInitialzationShader"
 {
 	Properties
 	{
@@ -19,6 +19,7 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
+			#include "..\ShaderIncludes\ColorSpaces.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
 
 			struct appdata // TODO: Can this be renamed?
@@ -44,17 +45,14 @@
 
 			float4 FragmentMain(VertexToFragment inputs) : SV_Target
 			{
-				float4 result = float4(0, 0, 0, 0);
+				float4 result = float4(0, 0, 0, -1);
 
-				//if ((Random(inputs.uv) + Random(inputs.uv + 1)) < 0.005)
 				if (distance(inputs.uv, 0.5) < 0.01)
 				{
 					float2 delta = (inputs.uv - 0.5);
-					//result = float4(Random(inputs.uv + 2), 1, 1, 0);
-					result = float4(frac(atan2(delta.y, delta.x) / radians(360)), 1, 1, 0);
+					float hue = frac(atan2(delta.y, delta.x) / radians(360));
+					result = float4(HsbToRgb(hue, 1, 1), 1);
 				}
-
-				result = float4(Random(inputs.uv + 3), 1, 1, 0);
 
 				return result;
 			}
