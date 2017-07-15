@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: GeneticRoshamDisplayMaterial
-  m_Shader: {fileID: 4800000, guid: 13db40261c9a00545889babd4853d190, type: 3}
+  m_Name: ReplicantDisplayMaterial
+  m_Shader: {fileID: 4800000, guid: 439691c94f69353458e760952e879d67, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

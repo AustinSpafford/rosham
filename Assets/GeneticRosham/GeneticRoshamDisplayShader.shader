@@ -4,7 +4,7 @@
 	{
 		_MainTex("Simulation Texture", 2D) = "black" {}
 	
-		_ImmunitySaturationEffect("Immunity Saturation Effect", Range(0, 1)) = 1.0
+		_ImmunityEffectFraction("Immunity Saturation Effect", Range(0, 1)) = 1.0
 	}
 
 	SubShader
@@ -35,7 +35,7 @@
 				float4 vertex : SV_POSITION;
 			};
 
-			uniform float _ImmunitySaturationEffect;
+			uniform float _ImmunityEffectFraction;
 
 			VertexToFragment VertexMain(
 				appdata vertexData)
@@ -53,8 +53,15 @@
 			{
 				float4 simState = tex2D(_MainTex, inputs.uv);
 
+				float hue = simState.x;
+				float saturation = lerp(0.75, 1, simState.y);
+				float brightness = (simState.z * pow(lerp(0.5, 1, simState.y), 3));
+
+				saturation = lerp(1, saturation, _ImmunityEffectFraction);
+				brightness = lerp(simState.z, brightness, _ImmunityEffectFraction);
+
 				return float4(
-					HsbToRgb(float3(simState.x, (1 - (_ImmunitySaturationEffect * simState.y)), simState.z)),
+					HsbToRgb(float3(hue, saturation, brightness)),
 					1);
 			}
 

@@ -65,13 +65,13 @@
 				{
 					if (defender.z <= 0)
 					{
-						result = Random(attacker.xy);
+						result = Random(float2(attacker.x, defender.y));
 					}
 					else
 					{
 						float delta = frac(defender.x - attacker.x);
 
-						if (((0.25 < delta) && (delta < 0.5)) &&
+						if (((0.0 < delta) && (delta < 0.03)) &&
 							((2 * delta) > defender.y))
 						{
 							result = delta;
@@ -123,9 +123,9 @@
 							lerp(
 								(-1 * _MaxMutationStep), 
 								_MaxMutationStep,
-								Random(inputs.uv + float(_SimulationIterationIndex))));
+								Random(inputs.uv + float2(self.x, result.x) + float(_SimulationIterationIndex))));
 
-					result.y = 1;
+					result.y = 0.01;
 				}
 				else
 				{
