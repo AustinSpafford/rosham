@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class FragmentShaderSimulation : MonoBehaviour
@@ -13,10 +14,10 @@ public class FragmentShaderSimulation : MonoBehaviour
 	public RenderTexture DisplayTexture = null;
 	
 	public Material InitializationMaterial = null;
-	public Material IterationMaterial = null;
+	public List<Material> SimulationPassMaterials = null;
 	public Material DisplayMaterial = null;
 
-	public int IterationsPerFrame = 1;
+	public int IterationsPerUpdate = 1;
 	
 	public bool DebugLoggingEnabled = false;
 	public bool DebugDisplayRawSimulation = false;
@@ -39,31 +40,30 @@ public class FragmentShaderSimulation : MonoBehaviour
 		CreateOrUpdateRenderTextureConfiguration(ref previousSimulationTexture, true, "previous_sim");
 
 		// Advance the simulation.
-		if ((IterationMaterial != null) &&
-			((DebugSingleStepOnSpace == false) || Input.GetKeyDown(KeyCode.Space)))
+		if ((DebugSingleStepOnSpace == false) || 
+			Input.GetKeyDown(KeyCode.Space))
 		{
-			float iterationDeltaTime = (Time.deltaTime / (float)IterationsPerFrame);
+			float iterationDeltaTime = (Time.deltaTime / (float)IterationsPerUpdate);
 
-			for (int index = 0; index < IterationsPerFrame; index++)
+			for (int index = 0; index < IterationsPerUpdate; index++)
 			{
-				RenderTexture swapTemp = currentSimulationTexture;
-				currentSimulationTexture = previousSimulationTexture;
-				previousSimulationTexture = swapTemp;
+				foreach (Material simulationPassMaterial in SimulationPassMaterials.Where(elem => (elem != null)))
+				{
+					RenderTexture swapTemp = currentSimulationTexture;
+					currentSimulationTexture = previousSimulationTexture;
+					previousSimulationTexture = swapTemp;
 			
-				IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
-				IterationMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
+					simulationPassMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+					simulationPassMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
 
-				Graphics.Blit(
-					previousSimulationTexture,
-					currentSimulationTexture,
-					IterationMaterial);
-
+					Graphics.Blit(
+						previousSimulationTexture,
+						currentSimulationTexture,
+						simulationPassMaterial);
+				}
+				
 				simulationIterationIndex++;
 			}
-		}
-		else
-		{
-			Debug.Log("The iteration-material is missing!");
 		}
 
 		// Output to the display texture.
