@@ -3,6 +3,9 @@
 	Properties
 	{
 		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
+	
+		_MinSpeed("Min Speed", Range(0, 2)) = 0.0
+		_MaxSpeed("Max Speed", Range(0, 2)) = 2.0
 	}
 
 	SubShader
@@ -33,8 +36,8 @@
 				float4 vertex : SV_POSITION;
 			};
 
-			// Based on intersecting a circle with a square of equal radius that's been sudivided into 5x5 cells.
-			// These areas represent each cell's contribution to a circle with total area of 1.
+			// 5x5 Circular Kernel. Derived by taking a circle inscribed in a square, and sudivided it into 5x5 cells.
+			// Each cell's area represents its contribution to a circle with total area of 1.
 			#define kApexArea 0.050195145475
 			#define kEdgeArea 0.039192412795
 			#define kCornerArea 0.006837485935
@@ -48,8 +51,8 @@
 				float3(-2, -2, kCornerArea), float3(-1, -2, kEdgeArea),   float3(0, -2, kApexArea),   float3(1, -2, kEdgeArea),   float3(2, -2, kCornerArea), 
 			};
 
-			uniform float _ImmunityDecayRate;
-			uniform float _MaxMutationStep;
+			uniform float _MinSpeed;
+			uniform float _MaxSpeed;
 
 			uniform int _SimulationIterationIndex;
 			uniform float _DeltaTime;
@@ -73,23 +76,52 @@
 
 				float2 neighborhoodVelocity = 0;
 				float2 neighborhoodCenterOfMass = 0;
-				float neighborhoodTotalMass = 0;
+				float neighborhoodAverageMass = 0;
 				{
 					for (int index = 0; index < 25; index++)
 					{
 						float3 kernelCell = kNeighborhoodKernel[index];
 
-						float4 neighbor = tex2D(_MainTex, (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy)));
+						float2 neighborCoordDelta = (kernelCell.xy * _MainTex_TexelSize.xy);
+						float4 neighbor = tex2D(_MainTex, (inputs.uv + neighborCoordDelta));
 
 						neighborhoodVelocity += (neighbor.xy * kernelCell.z);
-						neighborhoodCenterOfMass += (kernelCell.xy * neighbor.z);
-						neighborhoodTotalMass += (neighbor.z * kernelCell.z);
+						neighborhoodCenterOfMass += (neighborCoordDelta * neighbor.z);
+						neighborhoodAverageMass += (neighbor.z * kernelCell.z);
 					}
 
-					neighborhoodCenterOfMass /= neighborhoodTotalMass;
+					neighborhoodCenterOfMass /= max(0.0001, neighborhoodAverageMass);
+
+					// BUUUUUUUUUUUUUUUUUUUUUG! We're including empty cells in the velocity summation.
 				}
 
-				return float4(neighborhoodVelocity.x, neighborhoodVelocity.y, self.z, 0);
+				float2 idealVelocity;
+				{
+					idealVelocity = neighborhoodVelocity;
+
+					// HAAAAAACK!
+					if (neighborhoodAverageMass < 1.0)
+					{
+						idealVelocity += (1.0 * neighborhoodCenterOfMass);
+					}
+					else if (neighborhoodAverageMass > 3.0)
+					{
+						idealVelocity -= (1.0 * neighborhoodCenterOfMass);
+					}
+				}
+
+				float2 newVelocity;
+				{
+					float2 unboundedVelocity = idealVelocity; // TODO: Add some acceleration?
+					float unboundedSpeed = max(0.0001, length(unboundedVelocity));
+
+					float2 newDirection = (unboundedVelocity / unboundedSpeed);
+					float newSpeed = clamp(unboundedSpeed, _MinSpeed, _MaxSpeed);
+
+					newVelocity = (newDirection * newSpeed);
+				}
+
+				return float4(newVelocity.x, newVelocity.y, self.z, 0);
 			}
 
 			ENDCG

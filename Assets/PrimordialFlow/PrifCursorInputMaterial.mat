@@ -58,7 +58,7 @@ Material:
     - _BumpScale: 1
     - _CursorFalloffInner: 0.05
     - _CursorFalloffOuter: 0.2
-    - _CursorSmudgeStrength: 10
+    - _CursorSmudgeStrength: 20
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0

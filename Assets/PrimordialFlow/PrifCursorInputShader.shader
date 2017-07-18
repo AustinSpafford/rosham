@@ -82,11 +82,13 @@
 					float distanceToCursor = sqrt(distanceToCursorSq);
 					float cursorEffectFraction = smoothstep(_CursorFalloffOuter, _CursorFalloffInner, distanceToCursor);
 					
+					// Left mouse button.
 					if (_CursorButtonPressed.x > 0.0)
 					{
 						result.xy += (_CursorSmudgeStrength * _CursorPositionDelta * cursorEffectFraction);
 					}
 
+					// Right mouse button.
 					if (_CursorButtonPressed.y > 0.0)
 					{
 						float2 stirringDirection = normalize(float2(selfToCursorDelta.y, (-1 * selfToCursorDelta.x)));
@@ -94,6 +96,7 @@
 						result.xy += (stirringDirection * (4.0 + (100.0 * length(_CursorPositionDelta))) * _DeltaTime * cursorEffectFraction);
 					}
 
+					// Middle mouse button.
 					if (_CursorButtonPressed.z > 0.0)
 					{						
 						result.xy = lerp(result.xy, 0.0, saturate(10.0 * length(_CursorPositionDelta) * cursorEffectFraction));

@@ -46,6 +46,12 @@
 			{
 				float4 result = float4(0, 0, 1, 0);
 
+				if (distance(inputs.uv, 0.5) < 0.1)
+				{
+					result.x = lerp(-1, 1, Random(inputs.uv + 0));
+					result.y = lerp(-1, 1, Random(inputs.uv + 1));
+				}
+
 				return result;
 			}
 

@@ -244,7 +244,7 @@ MonoBehaviour:
   TextureDepthBits: 0
   TextureFormat: 11
   TextureWrapMode: 0
-  TextureFilterMode: 1
+  TextureFilterMode: 0
   DisplayTexture: {fileID: 8400000, guid: 86d792cfa4fa42340a3c686bdf32f360, type: 2}
   InitializationMaterial: {fileID: 2100000, guid: 5c5153ee5d004e149881d3892b264293,
     type: 2}

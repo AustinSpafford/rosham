@@ -51,11 +51,13 @@
 			{
 				float4 simState = tex2D(_MainTex, inputs.uv);
 
+				float massDisplayFraction = (1.0 - (1.0 / (0.001 + simState.z)));
+
 				return float4(
-					smoothstep(-2, 2, simState.x),
-					smoothstep(-2, 2, simState.y),
-					simState.z,
-					simState.w);
+					smoothstep(-2, 2, simState.x) * massDisplayFraction,
+					smoothstep(-2, 2, simState.y) * massDisplayFraction,
+					massDisplayFraction,
+					1);
 			}
 
 			ENDCG
