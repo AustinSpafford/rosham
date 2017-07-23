@@ -166,6 +166,14 @@ public class FragmentShaderSimulation : MonoBehaviour
 				{
 					Debug.LogFormat("Initializing the \"{0}\" simulation texture (via the initialzation material).", debugTextureName);
 				}
+				
+				InitializationMaterial.SetVector(
+					"_MainTex_TexelSize", 
+					new Vector4(
+						(1.0f / TextureWidth), 
+						(1.0f / TextureHeight), 
+						TextureWidth, 
+						TextureHeight));
 
 				Graphics.Blit(
 					null, // sourceTexture
