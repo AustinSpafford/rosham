@@ -54,8 +54,8 @@
 				float massDisplayFraction = (1.0 - (1.0 / (0.001 + simState.z)));
 
 				return float4(
-					smoothstep(-2, 2, simState.x) * massDisplayFraction,
-					smoothstep(-2, 2, simState.y) * massDisplayFraction,
+					smoothstep(-1, 1, simState.x) * massDisplayFraction,
+					smoothstep(-1, 1, simState.y) * massDisplayFraction,
 					massDisplayFraction,
 					1);
 			}
