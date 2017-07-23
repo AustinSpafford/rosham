@@ -4,10 +4,8 @@
 	{
 		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
 	
-		_CursorFalloffInner("Cursor Falloff Inner", Range(0, 1)) = 0.08
-		_CursorFalloffOuter("Cursor Falloff Outer", Range(0, 1)) = 0.12
-			
-		_CursorSmudgeStrength("Cursor Smudge Strength", float) = 1.0
+		_BlueprintFalloff("Blueprint Falloff", Range(0, 1)) = 0.02
+		_EraserFalloff("Eraser Falloff", Range(0, 1)) = 0.05
 	}
 
 	SubShader
@@ -24,7 +22,10 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
+			#include "..\ShaderIncludes\Coordinates.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
+
+			#include "TprCommon.cginc"
 
 			struct appdata // TODO: Can this be renamed?
 			{
@@ -38,9 +39,8 @@
 				float4 vertex : SV_POSITION;
 			};
 
-			uniform float _CursorFalloffInner;
-			uniform float _CursorFalloffOuter;
-			uniform float _CursorSmudgeStrength;
+			uniform float _BlueprintFalloff;
+			uniform float _EraserFalloff;
 
 			uniform int _SimulationIterationIndex;
 			uniform float _DeltaTime;
@@ -67,39 +67,37 @@
 			float4 FragmentMain(
 				VertexToFragment inputs) : SV_Target
 			{
-				float4 result = tex2D(_MainTex, inputs.uv);
+				float4 simState = tex2D(_MainTex, inputs.uv);
 
-				float2 selfToCursorDelta = (inputs.uv - _CursorPosition);
-
-				// Persepective-correct and factor in screen-wrapping.
-				selfToCursorDelta = (frac(selfToCursorDelta + 0.5) - 0.5);
-				selfToCursorDelta.x *= (_MainTex_TexelSize.z / _MainTex_TexelSize.w);
-
+				float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
+				float2 cursorCoord = TextureCoordToPerspectiveCorrected(_CursorPosition, _MainTex_TexelSize.zw);
+				
+				float2 selfToCursorDelta = (cursorCoord - testCoord);
 				float distanceToCursorSq = dot(selfToCursorDelta, selfToCursorDelta);
 
-				if (distanceToCursorSq <= (_CursorFalloffOuter * _CursorFalloffOuter))
+				float4 result = simState;
+				
+				// Left mouse button.
+				if (_CursorButtonPressed.x > 0.0)
 				{
-					float distanceToCursor = sqrt(distanceToCursorSq);
-					float cursorEffectFraction = smoothstep(_CursorFalloffOuter, _CursorFalloffInner, distanceToCursor);
-					
-					// Left mouse button.
-					if (_CursorButtonPressed.x > 0.0)
-					{
-						result.xy += (_CursorSmudgeStrength * _CursorPositionDelta * cursorEffectFraction);
+					if (distanceToCursorSq <= (_BlueprintFalloff * _BlueprintFalloff))
+					{					
+						if (IsType(simState.x, kTypeGround))
+						{
+							result.x = kTypeBlueprint;
+						}
 					}
-
-					// Right mouse button.
-					if (_CursorButtonPressed.y > 0.0)
-					{
-						float2 stirringDirection = normalize(float2(selfToCursorDelta.y, (-1 * selfToCursorDelta.x)));
-
-						result.xy += (stirringDirection * (4.0 + (100.0 * length(_CursorPositionDelta))) * _DeltaTime * cursorEffectFraction);
-					}
-
-					// Middle mouse button.
-					if (_CursorButtonPressed.z > 0.0)
-					{						
-						result.xy = lerp(result.xy, 0.0, saturate(10.0 * length(_CursorPositionDelta) * cursorEffectFraction));
+				}
+				
+				// Right mouse button.
+				if (_CursorButtonPressed.y > 0.0)
+				{
+					if (distanceToCursorSq <= (_EraserFalloff * _EraserFalloff))
+					{					
+						if (IsType(simState.x, kTypeBlueprint))
+						{
+							result.x = kTypeGround;
+						}
 					}
 				}
 

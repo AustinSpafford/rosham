@@ -25,6 +25,7 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
+			#include "..\ShaderIncludes\Coordinates.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
 
 			#include "TprCommon.cginc"
@@ -64,12 +65,7 @@
 			{
 				float4 result = float4(kTypeGround, -1, 0, 0);
 
-				float2 testCoord = inputs.uv;
-
-				testCoord *= 2;
-				testCoord -= 1;
-
-				testCoord.x *= (_MainTex_TexelSize.z / _MainTex_TexelSize.w);
+				float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
 
 				// Add veins.
 				{

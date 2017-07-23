@@ -243,7 +243,7 @@ MonoBehaviour:
   TextureHeight: 512
   TextureDepthBits: 0
   TextureFormat: 11
-  TextureWrapMode: 0
+  TextureWrapMode: 1
   TextureFilterMode: 0
   DisplayTexture: {fileID: 8400000, guid: 86d792cfa4fa42340a3c686bdf32f360, type: 2}
   InitializationMaterial: {fileID: 2100000, guid: ce3b4757fe5f08b4da32ffff319d275a,
