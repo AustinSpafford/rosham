@@ -47,7 +47,8 @@
 			sampler2D _MainTex;
 			uniform half4 _MainTex_TexelSize;
 
-			float4 FragmentMain(VertexToFragment inputs) : SV_Target
+			float4 FragmentMain(
+				VertexToFragment inputs) : SV_Target
 			{
 				float4 simState = tex2D(_MainTex, inputs.uv);
 
