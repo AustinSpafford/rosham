@@ -244,16 +244,19 @@ MonoBehaviour:
   TextureDepthBits: 0
   TextureFormat: 11
   TextureWrapMode: 0
+  TextureFilterMode: 0
   DisplayTexture: {fileID: 8400000, guid: 86d792cfa4fa42340a3c686bdf32f360, type: 2}
-  InitializationMaterial: {fileID: 2100000, guid: 4ee72eceb01cc1b49ad50c87bca4f185,
+  InitializationMaterial: {fileID: 2100000, guid: 5c5153ee5d004e149881d3892b264293,
     type: 2}
   SimulationPassMaterials:
-  - {fileID: 2100000, guid: 5728986ff79d2d543bc9630801234925, type: 2}
-  DisplayMaterial: {fileID: 2100000, guid: 27bda0fdf566a8e4dbfe2a010f1ed8b7, type: 2}
+  - {fileID: 2100000, guid: d7a11f17baa582b4d8dbcb56e4bfec3d, type: 2}
+  - {fileID: 2100000, guid: 0b8471d1ad677774f90578ee5b03b300, type: 2}
+  DisplayMaterial: {fileID: 2100000, guid: dbd7beb83cb876545b147d0d8f433411, type: 2}
+  CursorInputMaterial: {fileID: 2100000, guid: 41557c11e08cd5f4d8d8c7402816710d, type: 2}
   IterationsPerUpdate: 1
   DebugLoggingEnabled: 0
   DebugDisplayRawSimulation: 0
-  DebugInitializeOnResize: 1
+  DebugInitializeOnResize: 0
   DebugSingleStepOnSpace: 0
 --- !u!114 &517853341
 MonoBehaviour:

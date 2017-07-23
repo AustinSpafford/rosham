@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class FragmentShaderSimulation : MonoBehaviour
@@ -9,14 +10,16 @@ public class FragmentShaderSimulation : MonoBehaviour
 	public int TextureDepthBits = 0;
 	public RenderTextureFormat TextureFormat = RenderTextureFormat.ARGBFloat;
 	public TextureWrapMode TextureWrapMode = TextureWrapMode.Clamp;
+	public FilterMode TextureFilterMode = FilterMode.Point;
 
 	public RenderTexture DisplayTexture = null;
 	
 	public Material InitializationMaterial = null;
-	public Material IterationMaterial = null;
+	public List<Material> SimulationPassMaterials = null;
 	public Material DisplayMaterial = null;
+	public Material CursorInputMaterial = null;
 
-	public int IterationsPerFrame = 1;
+	public int IterationsPerUpdate = 1;
 	
 	public bool DebugLoggingEnabled = false;
 	public bool DebugDisplayRawSimulation = false;
@@ -38,32 +41,70 @@ public class FragmentShaderSimulation : MonoBehaviour
 		CreateOrUpdateRenderTextureConfiguration(ref currentSimulationTexture, true, "current_sim");
 		CreateOrUpdateRenderTextureConfiguration(ref previousSimulationTexture, true, "previous_sim");
 
-		// Advance the simulation.
-		if ((IterationMaterial != null) &&
-			((DebugSingleStepOnSpace == false) || Input.GetKeyDown(KeyCode.Space)))
+		// Provide cursor-input.
+		if (CursorInputMaterial != null)
 		{
-			float iterationDeltaTime = (Time.deltaTime / (float)IterationsPerFrame);
-
-			for (int index = 0; index < IterationsPerFrame; index++)
-			{
-				RenderTexture swapTemp = currentSimulationTexture;
-				currentSimulationTexture = previousSimulationTexture;
-				previousSimulationTexture = swapTemp;
+			RenderTexture swapTemp = currentSimulationTexture;
+			currentSimulationTexture = previousSimulationTexture;
+			previousSimulationTexture = swapTemp;
 			
-				IterationMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
-				IterationMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
+			CursorInputMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+			CursorInputMaterial.SetFloat("_DeltaTime", Time.deltaTime);
 
-				Graphics.Blit(
-					previousSimulationTexture,
-					currentSimulationTexture,
-					IterationMaterial);
+			Rect screenRect = new Rect(0, 0, Screen.width, Screen.height);
+			bool cursorIsActive = screenRect.Contains(Input.mousePosition);
 
+			Vector3 screenToNormalized = new Vector3((1.0f / Screen.width), (1.0f / Screen.height), 1.0f);
+			Vector3 normalizedCursorPosition = Vector3.Scale(Input.mousePosition, screenToNormalized);
+			
+			// To keep the reported cursor from jumping across an entire window when the OS-cursor moved around
+			// the outside, only report deltas between consecutive valid frames.
+			Vector3 cursorPositionDelta = 
+				(previousCursorIsActive && cursorIsActive) ?
+					(normalizedCursorPosition - previousCursorPosition) :
+					Vector3.zero;
+
+			CursorInputMaterial.SetInt("_CursorIsActive", (cursorIsActive ? 1 : 0));
+			CursorInputMaterial.SetVector("_CursorPosition", normalizedCursorPosition);
+			CursorInputMaterial.SetVector("_CursorPositionDelta", cursorPositionDelta);
+			CursorInputMaterial.SetVector("_CursorButtonPressed", new Vector3((Input.GetMouseButton(0) ? 1.0f : 0.0f), (Input.GetMouseButton(1) ? 1.0f : 0.0f), (Input.GetMouseButton(2) ? 1.0f : 0.0f)));
+			CursorInputMaterial.SetVector("_CursorButtonClicked", new Vector3((Input.GetMouseButtonDown(0) ? 1.0f : 0.0f), (Input.GetMouseButtonDown(1) ? 1.0f : 0.0f), (Input.GetMouseButtonDown(2) ? 1.0f : 0.0f)));
+			CursorInputMaterial.SetVector("_CursorButtonUnclicked", new Vector3((Input.GetMouseButtonUp(0) ? 1.0f : 0.0f), (Input.GetMouseButtonUp(1) ? 1.0f : 0.0f), (Input.GetMouseButtonUp(2) ? 1.0f : 0.0f)));
+
+			Graphics.Blit(
+				previousSimulationTexture,
+				currentSimulationTexture,
+				CursorInputMaterial);
+
+			previousCursorIsActive = cursorIsActive;
+			previousCursorPosition = normalizedCursorPosition;
+		}
+
+		// Advance the simulation.
+		if ((DebugSingleStepOnSpace == false) || 
+			Input.GetKeyDown(KeyCode.Space))
+		{
+			float iterationDeltaTime = (Time.deltaTime / (float)IterationsPerUpdate);
+
+			for (int index = 0; index < IterationsPerUpdate; index++)
+			{
+				foreach (Material simulationPassMaterial in SimulationPassMaterials.Where(elem => (elem != null)))
+				{
+					RenderTexture swapTemp = currentSimulationTexture;
+					currentSimulationTexture = previousSimulationTexture;
+					previousSimulationTexture = swapTemp;
+			
+					simulationPassMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+					simulationPassMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
+
+					Graphics.Blit(
+						previousSimulationTexture,
+						currentSimulationTexture,
+						simulationPassMaterial);
+				}
+				
 				simulationIterationIndex++;
 			}
-		}
-		else
-		{
-			Debug.Log("The iteration-material is missing!");
 		}
 
 		// Output to the display texture.
@@ -86,6 +127,9 @@ public class FragmentShaderSimulation : MonoBehaviour
 	private RenderTexture previousSimulationTexture = null;
 
 	private int simulationIterationIndex = 0;	
+
+	private bool previousCursorIsActive = false;
+	private Vector3 previousCursorPosition = Vector3.zero;
 
 	private void CreateOrUpdateRenderTextureConfiguration(
 		ref RenderTexture inoutTexture,
@@ -113,9 +157,6 @@ public class FragmentShaderSimulation : MonoBehaviour
 				// Kill mip-mapping with a vengeance, because otherwise it'll completely bork the simulation.
 				inoutTexture.autoGenerateMips = false;
 				inoutTexture.useMipMap = false;
-
-				// Assuming the shader is texel-aligned, this just saves us unecessary texture-reads.
-				inoutTexture.filterMode = FilterMode.Point;
 			}
 			
 			if (isSimulationTexture &&
@@ -137,7 +178,8 @@ public class FragmentShaderSimulation : MonoBehaviour
 			inoutTexture.height != TextureHeight ||
 			inoutTexture.depth != TextureDepthBits ||
 			inoutTexture.format != TextureFormat ||
-			inoutTexture.wrapMode != TextureWrapMode)
+			inoutTexture.wrapMode != TextureWrapMode ||
+			inoutTexture.filterMode != TextureFilterMode)
 		{
 			if (DebugLoggingEnabled)
 			{
@@ -156,6 +198,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 			inoutTexture.depth = TextureDepthBits;
 			inoutTexture.format = TextureFormat;
 			inoutTexture.wrapMode = TextureWrapMode;
+			inoutTexture.filterMode = TextureFilterMode;
 			inoutTexture.Create();
 			
 			if (isSimulationTexture)

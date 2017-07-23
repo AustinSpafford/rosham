@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: CameraSortSimulationMaterial
-  m_Shader: {fileID: 4800000, guid: f1baeb64ed908314da8ec53554e6a671, type: 3}
+  m_Name: PrifCursorInputMaterial
+  m_Shader: {fileID: 4800000, guid: 11f89d1c66392fa4da37be5fbff82bd4, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -54,20 +54,17 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _WebcamTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
+    - _CursorFalloffInner: 0.05
+    - _CursorFalloffOuter: 0.2
+    - _CursorSmudgeStrength: 20
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _ImmunityDecayRate: 1
-    - _MaxMutationStep: 0.01
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
