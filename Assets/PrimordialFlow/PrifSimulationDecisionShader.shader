@@ -78,6 +78,8 @@
 				float2 neighborhoodCenterOfMass = 0;
 				float neighborhoodAverageMass = 0;
 				{
+					float2 neighborhoodAverageMomentum = 0;
+
 					for (int index = 0; index < 25; index++)
 					{
 						float3 kernelCell = kNeighborhoodKernel[index];
@@ -85,14 +87,14 @@
 						float2 neighborCoordDelta = (kernelCell.xy * _MainTex_TexelSize.xy);
 						float4 neighbor = tex2D(_MainTex, (inputs.uv + neighborCoordDelta));
 
-						neighborhoodVelocity += (neighbor.xy * kernelCell.z);
+						neighborhoodAverageMomentum += (neighbor.xy * neighbor.z * kernelCell.z);
 						neighborhoodCenterOfMass += (neighborCoordDelta * neighbor.z);
 						neighborhoodAverageMass += (neighbor.z * kernelCell.z);
 					}
 
 					neighborhoodCenterOfMass /= max(0.0001, neighborhoodAverageMass);
 
-					// BUUUUUUUUUUUUUUUUUUUUUG! We're including empty cells in the velocity summation.
+					neighborhoodVelocity = (neighborhoodAverageMomentum / max(0.0001, neighborhoodAverageMass));
 				}
 
 				float2 idealVelocity;
@@ -106,7 +108,7 @@
 					}
 					else if (neighborhoodAverageMass > 3.0)
 					{
-						idealVelocity -= (1.0 * neighborhoodCenterOfMass);
+						idealVelocity += (-1.0 * neighborhoodCenterOfMass);
 					}
 				}
 
@@ -120,6 +122,10 @@
 
 					newVelocity = (newDirection * newSpeed);
 				}
+
+				// BUUUUUUUUUUUG! We're diffusing just the mass, instead of the momentum.
+				// Slightly diffuse mass to keep ultra-dense cells from forming.
+				self.z = lerp(self.z, neighborhoodAverageMass, 0.01);
 
 				return float4(newVelocity.x, newVelocity.y, self.z, 0);
 			}
