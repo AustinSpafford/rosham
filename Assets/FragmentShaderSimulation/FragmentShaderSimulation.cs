@@ -116,6 +116,9 @@ public class FragmentShaderSimulation : MonoBehaviour
 		}
 		else
 		{
+			DisplayMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+			DisplayMaterial.SetFloat("_DeltaTime", Time.deltaTime);
+
 			Graphics.Blit(
 				currentSimulationTexture,
 				DisplayTexture,

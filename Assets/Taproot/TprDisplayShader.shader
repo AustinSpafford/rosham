@@ -52,6 +52,9 @@
 			uniform float4 _VeinEmptyColor;
 			uniform float4 _VeinFullColor;
 
+			uniform int _SimulationIterationIndex;
+			uniform float _DeltaTime;
+
 			VertexToFragment VertexMain(
 				appdata vertexData)
 			{
@@ -67,32 +70,40 @@
 			float4 FragmentMain(
 				VertexToFragment inputs) : SV_Target
 			{
-				float4 simState = tex2D(_MainTex, inputs.uv);
+				float4 self = tex2D(_MainTex, inputs.uv);
 
 				float4 result = float4(1, 0, 1, 1);
 
 				// Ordered loosely by prevelence.
-				if (IsType(simState.x, kTypeGround))
+				if (IsType(self.x, kTypeGround))
 				{
 					result = _GroundColor;
 				}
-				else if (IsType(simState.x, kTypeConveyor))
+				else if (IsType(self.x, kTypeConveyor))
 				{
 					result = _ConveyorColor;
 				}
-				else if (IsType(simState.x, kTypeBlueprint))
+				else if (IsType(self.x, kTypeBlueprint))
 				{
 					result = _BlueprintColor;
+
+					// HAAAAAAAAAAAACK!
+					if (self.y >= 0.0)
+					{
+						float pulseFraction = pow(smoothstep(-1, 1, sin((0.5 * self.y) + (0.1 * _SimulationIterationIndex))), 10.0);
+
+						result = lerp(result, float4(1.0, 0.5, 0.0, 1.0), pulseFraction);
+					}
 				}
-				else if (IsType(simState.x, kTypeObstacle))
+				else if (IsType(self.x, kTypeObstacle))
 				{
 					result = _ObstacleColor;
 				}
-				else if (IsType(simState.x, kTypeVein))
+				else if (IsType(self.x, kTypeVein))
 				{
-					result = lerp(_VeinEmptyColor, _VeinFullColor, smoothstep(0.0, 50.0, simState.z));
+					result = lerp(_VeinEmptyColor, _VeinFullColor, smoothstep(0.0, 50.0, self.z));
 				}
-				else if (IsType(simState.x, kTypeBase))
+				else if (IsType(self.x, kTypeBase))
 				{
 					result = _BaseColor;
 				}

@@ -67,7 +67,7 @@
 			float4 FragmentMain(
 				VertexToFragment inputs) : SV_Target
 			{
-				float4 simState = tex2D(_MainTex, inputs.uv);
+				float4 self = tex2D(_MainTex, inputs.uv);
 
 				float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
 				float2 cursorCoord = TextureCoordToPerspectiveCorrected(_CursorPosition, _MainTex_TexelSize.zw);
@@ -75,14 +75,14 @@
 				float2 selfToCursorDelta = (cursorCoord - testCoord);
 				float distanceToCursorSq = dot(selfToCursorDelta, selfToCursorDelta);
 
-				float4 result = simState;
+				float4 result = self;
 				
 				// Left mouse button.
 				if (_CursorButtonPressed.x > 0.0)
 				{
 					if (distanceToCursorSq <= (_BlueprintFalloff * _BlueprintFalloff))
 					{					
-						if (IsType(simState.x, kTypeGround))
+						if (IsType(self.x, kTypeGround))
 						{
 							result.x = kTypeBlueprint;
 						}
@@ -94,7 +94,7 @@
 				{
 					if (distanceToCursorSq <= (_EraserFalloff * _EraserFalloff))
 					{					
-						if (IsType(simState.x, kTypeBlueprint))
+						if (IsType(self.x, kTypeBlueprint))
 						{
 							result.x = kTypeGround;
 						}
