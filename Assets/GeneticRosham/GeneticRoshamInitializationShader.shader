@@ -42,7 +42,8 @@
 				return result;
 			}
 
-			float4 FragmentMain(VertexToFragment inputs) : SV_Target
+			float4 FragmentMain(
+				VertexToFragment inputs) : SV_Target
 			{
 				float4 result = float4(0, 0, 0, 0);
 

@@ -116,6 +116,9 @@ public class FragmentShaderSimulation : MonoBehaviour
 		}
 		else
 		{
+			DisplayMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+			DisplayMaterial.SetFloat("_DeltaTime", Time.deltaTime);
+
 			Graphics.Blit(
 				currentSimulationTexture,
 				DisplayTexture,
@@ -166,6 +169,14 @@ public class FragmentShaderSimulation : MonoBehaviour
 				{
 					Debug.LogFormat("Initializing the \"{0}\" simulation texture (via the initialzation material).", debugTextureName);
 				}
+				
+				InitializationMaterial.SetVector(
+					"_MainTex_TexelSize", 
+					new Vector4(
+						(1.0f / TextureWidth), 
+						(1.0f / TextureHeight), 
+						TextureWidth, 
+						TextureHeight));
 
 				Graphics.Blit(
 					null, // sourceTexture

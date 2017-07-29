@@ -14,6 +14,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Replicant/ReplicantScene.unity
     guid: 022a460e99a4d7740bc2b835d94bd08d
-  - enabled: 1
+  - enabled: 0
     path: Assets/PrimordialFlow/PrifScene.unity
     guid: 83d652198b75a1a44bea3c19d1878466
+  - enabled: 1
+    path: Assets/Taproot/TprScene.unity
+    guid: a08ad44b59316d9458cd776ce3faacdd
