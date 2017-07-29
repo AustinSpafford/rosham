@@ -95,8 +95,8 @@
 					{
 						// Randomize our steering to avoid traffic jams.
 						// HAAAAAAAACK!
-						float staticRandom = Random(inputs.uv + _SimulationIterationIndex);
-						result.z = floor(7.999 * staticRandom.x);
+						float dynamicRandom = Random(inputs.uv + _SimulationIterationIndex);
+						result.z = floor(7.999 * dynamicRandom.x);
 					}
 				}
 
