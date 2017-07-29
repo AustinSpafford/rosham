@@ -244,7 +244,7 @@ MonoBehaviour:
   TextureHeight: 512
   TextureDepthBits: 0
   TextureFormat: 11
-  TextureWrapMode: 1
+  TextureWrapMode: 0
   TextureFilterMode: 0
   DisplayTexture: {fileID: 8400000, guid: 86d792cfa4fa42340a3c686bdf32f360, type: 2}
   InitializationMaterial: {fileID: 2100000, guid: ca8ec219382abe941b819edae38bc625,
@@ -277,12 +277,12 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 517853338}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: abbb2325736c1e74f982a9dfe3044011, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetMaterial: {fileID: 2100000, guid: dd5cc212633f13949963fa391c7480bb, type: 2}
+  TargetMaterial: {fileID: 2100000, guid: d6155ad8477b20b458c318863d5cf509, type: 2}
   ShaderTextureName: _WebcamTex
   DebugLoggingEnabled: 0
 --- !u!1 &633788537

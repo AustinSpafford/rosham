@@ -3,6 +3,7 @@
 	Properties
 	{
 		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
+		_WebcamTex("Webcam Texture", 2D) = "black" {}
 	}
 
 	SubShader
@@ -20,6 +21,8 @@
 			
 			#include "UnityCG.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
+
+			#include "GheCommon.cginc"
 
 			struct appdata // TODO: Can this be renamed?
 			{
@@ -44,23 +47,70 @@
 				result.uv = vertexData.uv;
 				return result;
 			}
-
-			static const float3 kNeighborhoodKernel[8] =
-			{
-				float3(-1, 1, 1.414),  float3(0, 1, 1.0),  float3(1, 1, 1.414),
-				float3(-1, 0, 1.0),                        float3(1, 0, 1.0),
-				float3(-1, -1, 1.414), float3(0, -1, 1.0), float3(1, -1, 1.414),
-			};
 			
 			sampler2D _MainTex;
 			uniform half4 _MainTex_TexelSize;
+			
+			sampler2D _WebcamTex;
+			uniform half4 _WebcamTex_TexelSize;
 
 			float4 FragmentMain(
 				VertexToFragment inputs) : SV_Target
 			{
 				float4 self = tex2D(_MainTex, inputs.uv);
 
-				return self;
+				float4 result = self;
+
+				if (self.y <= 0.0)
+				{
+					// If we're an empty cell that has accepted a spark.
+					if (self.z >= 0.0)
+					{
+						float3 kernelCell = kNeighborhoodKernel[FloatToIntRound(ReverseDirection(self.z))];
+
+						float2 neighborCoord = (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy));
+						float4 neighbor = tex2D(_MainTex, neighborCoord);
+
+						// Become the spark.
+						result.y = neighbor.y;
+						result.z = neighbor.z;
+					}
+				}
+				else
+				{
+					float3 kernelCell = kNeighborhoodKernel[FloatToIntRound(self.z)];
+					
+					float2 neighborCoord = (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy));
+					float4 neighbor = tex2D(_MainTex, neighborCoord);
+
+					// If we're a spark that is moving into an empty cell that has accepted us.
+					if ((neighbor.y <= 0.0) &&
+						DirectionsAreEqual(neighbor.z, self.z))
+					{
+						// Become an empty cell.
+						result.y = 0.0;
+						result.z = -1.0;
+					}
+					else
+					{
+						// Randomize our steering to avoid traffic jams.
+						// HAAAAAAAACK!
+						float staticRandom = Random(inputs.uv + _SimulationIterationIndex);
+						result.z = floor(7.999 * staticRandom.x);
+					}
+				}
+
+				if (result.y > 0.0)
+				{
+					result.x = max(result.x, pow(result.y, 0.25));
+					result.y = max(0.0, (result.y - 0.001));
+				}
+				else
+				{
+					result.x = max(0.0, (result.x - 0.02));
+				}
+
+				return result;
 			}
 
 			ENDCG

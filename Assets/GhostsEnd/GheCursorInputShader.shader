@@ -76,7 +76,8 @@
 				float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
 				float2 cursorCoord = TextureCoordToPerspectiveCorrected(_CursorPosition, _MainTex_TexelSize.zw);
 				
-				float staticRandom = Random(testCoord);
+				// TODO: Try animating this random value.
+				float3 staticRandom = Random3(testCoord);
 				
 				float2 selfToCursorDelta = (cursorCoord - testCoord);
 				float distanceToCursorSq = dot(selfToCursorDelta, selfToCursorDelta);
@@ -94,7 +95,8 @@
 
 						if (creationThreshold < staticRandom.x)
 						{
-							result.y = 1.0;
+							result.y = lerp(0.25, 1.0, staticRandom.y);
+							result.z = floor(7.999 * staticRandom.z);
 						}
 					}
 				}

@@ -62,10 +62,10 @@
 			{
 				float4 self = tex2D(_MainTex, inputs.uv);
 
-				float4 result = float4(0, 0, 0, 0);
+				float4 result = float4(0, 0, 0, 1);
 
 				result = lerp(result, _TrailColor, self.x);
-				result = lerp(result, _SparkColor, self.y);
+				result = lerp(result, _SparkColor, pow(self.y, 0.25));
 
 				return result;
 			}

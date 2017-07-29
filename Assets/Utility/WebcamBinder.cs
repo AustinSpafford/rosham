@@ -20,8 +20,9 @@ public class WebcamBinder : MonoBehaviour
 			Texture validationTexture = TargetMaterial.GetTexture(ShaderTextureName);
 
 			Debug.LogFormat(
-				"WebcamBinder [{0}] in assigning the webcam texture.",
-				((webcamTexture == validationTexture) ? "succeeded" : "failed"));
+				"WebcamBinder [{0}] in assigning the webcam texture on [{1}].",
+				((webcamTexture == validationTexture) ? "succeeded" : "failed"),
+				TargetMaterial.name);
 		}
 
 		webcamTexture.Play();		

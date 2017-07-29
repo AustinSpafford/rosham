@@ -21,6 +21,8 @@
 			#include "UnityCG.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
 
+			#include "GheCommon.cginc"
+
 			struct appdata // TODO: Can this be renamed?
 			{
 				float4 vertex : POSITION;
@@ -44,13 +46,6 @@
 				result.uv = vertexData.uv;
 				return result;
 			}
-
-			static const float3 kNeighborhoodKernel[8] =
-			{
-				float3(-1, 1, 1.414),  float3(0, 1, 1.0),  float3(1, 1, 1.414),
-				float3(-1, 0, 1.0),                        float3(1, 0, 1.0),
-				float3(-1, -1, 1.414), float3(0, -1, 1.0), float3(1, -1, 1.414),
-			};
 			
 			sampler2D _MainTex;
 			uniform half4 _MainTex_TexelSize;
@@ -60,7 +55,41 @@
 			{
 				float4 self = tex2D(_MainTex, inputs.uv);
 
-				return self;
+				float4 result = self;
+
+				// If we're an empty cell, grant a single neighboring spark entry.
+				if (self.y <= 0.0)
+				{
+					float bestDirection = -1;
+					float bestScore = -1;
+					{
+						for (int index = 0; index < 8; index++)
+						{
+							float3 kernelCell = kNeighborhoodKernel[index];
+
+							float2 neighborCoord = (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy));
+							float4 neighbor = tex2D(_MainTex, neighborCoord);
+
+							// If the neighbor is a spark trying to move into our cell.
+							if ((neighbor.y > 0.0) &&
+								DirectionsAreEqual(neighbor.z, kernelCell.z))
+							{
+								// TODO: Definitely animate this random value!
+								float staticNeighborRandom = Random(neighborCoord);
+
+								if (bestScore < staticNeighborRandom)
+								{
+									bestDirection = neighbor.z;
+									bestScore = staticNeighborRandom;
+								}
+							}
+						}
+					}
+
+					result.z = bestDirection;
+				}
+
+				return result;
 			}
 
 			ENDCG
