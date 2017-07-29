@@ -26,7 +26,7 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 0, a: 1}
     - _BlueprintColor: {r: 0, g: 0.6, b: 0.6, a: 1}
-    - _ConveyorColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+    - _ConveyorColor: {r: 0.356, g: 0.356, b: 0.356, a: 1}
     - _GroundColor: {r: 0.33, g: 0.22, b: 0.1, a: 1}
     - _ObstacleColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
     - _VeinEmptyColor: {r: 0.35726646, g: 0.31898788, b: 0.43382353, a: 1}
