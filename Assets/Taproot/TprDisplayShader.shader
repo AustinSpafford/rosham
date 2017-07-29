@@ -82,18 +82,17 @@
 				else if (IsType(self.x, kTypeConveyor))
 				{
 					result = _ConveyorColor;
+
+					if (self.y >= 0.0)
+					{
+						float pulseFraction = smoothstep(0.8, 1, sin((0.25 * self.y) + (0.1 * _SimulationIterationIndex)));
+
+						result = lerp(result, float4(1.0, 0.75, 0.0, 1.0), pulseFraction);
+					}
 				}
 				else if (IsType(self.x, kTypeBlueprint))
 				{
 					result = _BlueprintColor;
-
-					// HAAAAAAAAAAAACK!
-					if (self.y >= 0.0)
-					{
-						float pulseFraction = pow(smoothstep(-1, 1, sin((0.5 * self.y) + (0.1 * _SimulationIterationIndex))), 10.0);
-
-						result = lerp(result, float4(1.0, 0.5, 0.0, 1.0), pulseFraction);
-					}
 				}
 				else if (IsType(self.x, kTypeObstacle))
 				{

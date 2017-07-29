@@ -84,7 +84,9 @@
 					{					
 						if (IsType(self.x, kTypeGround))
 						{
-							result.x = kTypeBlueprint;
+							result.x = kTypeConveyor;
+							//result.x = kTypeBlueprint;
+							//result.w = -1; // Consume 1 plate to build the conveyor.
 						}
 					}
 				}
@@ -97,6 +99,7 @@
 						if (IsType(self.x, kTypeBlueprint))
 						{
 							result.x = kTypeGround;
+							result.y = -1;
 						}
 					}
 				}

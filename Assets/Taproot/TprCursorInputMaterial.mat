@@ -25,5 +25,5 @@ Material:
     m_Floats:
     - _BlueprintFalloff: 0.03
     - _CursorFalloff: 0.02
-    - _EraserFalloff: 0.05
+    - _EraserFalloff: 0.1
     m_Colors: []
