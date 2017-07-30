@@ -37,6 +37,7 @@
 			};
 
 			uniform int _SimulationIterationIndex;
+			uniform float _SimulationIterationRandomFraction;
 			uniform float _DeltaTime;
 
 			VertexToFragment VertexMain(
@@ -66,7 +67,7 @@
 					// If we're an empty cell that has accepted a spark.
 					if (self.z >= 0.0)
 					{
-						float3 kernelCell = kNeighborhoodKernel[FloatToIntRound(ReverseDirection(self.z))];
+						float2 kernelCell = kNeighborhoodKernel[FloatToIntRound(ReverseDirection(self.z))];
 
 						float2 neighborCoord = (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy));
 						float4 neighbor = tex2D(_MainTex, neighborCoord);
@@ -78,7 +79,7 @@
 				}
 				else
 				{
-					float3 kernelCell = kNeighborhoodKernel[FloatToIntRound(self.z)];
+					float2 kernelCell = kNeighborhoodKernel[FloatToIntRound(self.z)];
 					
 					float2 neighborCoord = (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy));
 					float4 neighbor = tex2D(_MainTex, neighborCoord);
@@ -93,10 +94,10 @@
 					}
 					else
 					{
+						float dynamicRandom = Random(inputs.uv + _SimulationIterationRandomFraction);
+						
 						// Randomize our steering to avoid traffic jams.
-						// HAAAAAAAACK!
-						float dynamicRandom = Random(inputs.uv + _SimulationIterationIndex);
-						result.z = floor(7.999 * dynamicRandom.x);
+						result.z = SnapDirection(result.z + ((dynamicRandom < 0.5) ? 1.0 : -1.0));
 					}
 				}
 
@@ -104,6 +105,9 @@
 				{
 					result.x = max(result.x, pow(result.y, 0.25));
 					result.y = max(0.0, (result.y - 0.001));
+
+					// If the spark just died, clear the direction to keep it from appearing to be an empty spaec that failed its handshake.
+					result.z = ((result.y <= 0.0) ? -1.0 : result.z);
 				}
 				else
 				{

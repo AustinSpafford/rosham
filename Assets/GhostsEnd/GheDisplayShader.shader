@@ -43,6 +43,7 @@
 			uniform float4 _GlowColor;
 
 			uniform int _SimulationIterationIndex;
+			uniform float _SimulationIterationRandomFraction;
 			uniform float _DeltaTime;
 
 			VertexToFragment VertexMain(
@@ -66,6 +67,20 @@
 
 				result = lerp(result, _TrailColor, self.x);
 				result = lerp(result, _SparkColor, pow(self.y, 0.25));
+
+				/*
+				if (self.y <= 0.0)
+				{
+					if (self.z >= 0.0)
+					{
+						result = float4(((self.z + 1.0) / 8.0), 0, 0, 1);
+					}
+				}
+				else
+				{
+					result = float4(0, ((self.z + 1.0) / 8.0), 0, 1);
+				}
+				*/
 
 				return result;
 			}

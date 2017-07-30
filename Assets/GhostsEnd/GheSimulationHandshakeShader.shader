@@ -36,6 +36,7 @@
 			};
 
 			uniform int _SimulationIterationIndex;
+			uniform float _SimulationIterationRandomFraction;
 			uniform float _DeltaTime;
 
 			VertexToFragment VertexMain(
@@ -65,22 +66,21 @@
 					{
 						for (int index = 0; index < 8; index++)
 						{
-							float3 kernelCell = kNeighborhoodKernel[index];
+							float2 kernelCell = kNeighborhoodKernel[index];
 
 							float2 neighborCoord = (inputs.uv + (kernelCell.xy * _MainTex_TexelSize.xy));
 							float4 neighbor = tex2D(_MainTex, neighborCoord);
 
 							// If the neighbor is a spark trying to move into our cell.
 							if ((neighbor.y > 0.0) &&
-								DirectionsAreEqual(neighbor.z, kernelCell.z))
+								DirectionsAreEqual(neighbor.z, ReverseDirection((float)index)))
 							{
-								// TODO: Definitely animate this random value!
-								float staticNeighborRandom = Random(neighborCoord);
+								float dynamicNeighborRandom = Random(neighborCoord + _SimulationIterationRandomFraction);
 
-								if (bestScore < staticNeighborRandom)
+								if (bestScore < dynamicNeighborRandom)
 								{
 									bestDirection = neighbor.z;
-									bestScore = staticNeighborRandom;
+									bestScore = dynamicNeighborRandom;
 								}
 							}
 						}

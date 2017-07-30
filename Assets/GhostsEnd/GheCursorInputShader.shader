@@ -47,6 +47,7 @@
 			uniform float _EraserFalloff;
 
 			uniform int _SimulationIterationIndex;
+			uniform float _SimulationIterationRandomFraction;
 			uniform float _DeltaTime;
 
 			uniform int _CursorIsActive;
@@ -76,8 +77,7 @@
 				float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
 				float2 cursorCoord = TextureCoordToPerspectiveCorrected(_CursorPosition, _MainTex_TexelSize.zw);
 				
-				// TODO: Try animating this random value.
-				float3 staticRandom = Random3(testCoord);
+				float3 dynamicRandom = Random3(testCoord + _SimulationIterationRandomFraction);
 				
 				float2 selfToCursorDelta = (cursorCoord - testCoord);
 				float distanceToCursorSq = dot(selfToCursorDelta, selfToCursorDelta);
@@ -93,10 +93,10 @@
 						float cursorFraction = smoothstep(_SparkerOuterFalloff, _SparkerInnerFalloff, distanceToCursor);
 						float creationThreshold = lerp(1.001, _SparkerCreationThreshold, cursorFraction);
 
-						if (creationThreshold < staticRandom.x)
+						if (creationThreshold < dynamicRandom.x)
 						{
-							result.y = lerp(0.25, 1.0, staticRandom.y);
-							result.z = floor(7.999 * staticRandom.z);
+							result.y = lerp(0.25, 1.0, dynamicRandom.y);
+							result.z = floor(7.999 * dynamicRandom.z);
 						}
 					}
 				}
