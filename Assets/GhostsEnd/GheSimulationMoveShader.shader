@@ -4,6 +4,8 @@
 	{
 		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
 		_WebcamTex("Webcam Texture", 2D) = "black" {}
+		
+		_StraightMovementProbability("Straight Movement Probability", Range(0, 1)) = 0.99
 	}
 
 	SubShader
@@ -40,6 +42,8 @@
 			uniform float _SimulationIterationRandomFraction;
 			uniform float _DeltaTime;
 
+			uniform float _StraightMovementProbability;
+
 			VertexToFragment VertexMain(
 				appdata vertexData)
 			{
@@ -61,6 +65,8 @@
 				float4 self = tex2D(_MainTex, inputs.uv);
 
 				float4 result = self;
+				
+				float2 dynamicRandom = Random2(inputs.uv + _SimulationIterationRandomFraction);
 
 				if (self.y <= 0.0)
 				{
@@ -75,6 +81,12 @@
 						// Become the spark.
 						result.y = neighbor.y;
 						result.z = neighbor.z;
+
+						// Randomly steer around.
+						if (_StraightMovementProbability < dynamicRandom.x)
+						{
+							result.z = SnapDirection(result.z + ((dynamicRandom.y < 0.5) ? 1.0 : -1.0));
+						}
 					}
 				}
 				else
@@ -93,11 +105,9 @@
 						result.z = -1.0;
 					}
 					else
-					{
-						float dynamicRandom = Random(inputs.uv + _SimulationIterationRandomFraction);
-						
+					{						
 						// Randomize our steering to avoid traffic jams.
-						result.z = SnapDirection(result.z + ((dynamicRandom < 0.5) ? 1.0 : -1.0));
+						result.z = SnapDirection(result.z + ((dynamicRandom.x < 0.5) ? 1.0 : -1.0));
 					}
 				}
 

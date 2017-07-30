@@ -26,7 +26,8 @@ Material:
     - _BlueprintFalloff: 0.03
     - _CursorFalloff: 0.02
     - _EraserFalloff: 0.4
-    - _SparkerCreationThreshold: 0.95
+    - _SparkerCreationProbability: 0.02
+    - _SparkerCreationThreshold: 0.98
     - _SparkerInnerFalloff: 0.03
     - _SparkerOuterFalloff: 0.25
     m_Colors: []

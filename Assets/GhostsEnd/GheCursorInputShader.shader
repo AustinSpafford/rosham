@@ -6,7 +6,7 @@
 	
 		_SparkerInnerFalloff("Sparker Inner Falloff", Range(0, 1)) = 0.1
 		_SparkerOuterFalloff("Sparker Outer Falloff", Range(0, 1)) = 0.2
-		_SparkerCreationThreshold("Sparker Creation Threshold", Range(0, 1)) = 0.0001
+		_SparkerCreationProbability("Sparker Creation Probability", Range(0, 1)) = 0.02
 			
 		_EraserFalloff("Eraser Falloff", Range(0, 1)) = 0.3
 	}
@@ -42,7 +42,7 @@
 
 			uniform float _SparkerInnerFalloff;
 			uniform float _SparkerOuterFalloff;
-			uniform float _SparkerCreationThreshold;
+			uniform float _SparkerCreationProbability;
 
 			uniform float _EraserFalloff;
 
@@ -91,9 +91,9 @@
 					{
 						float distanceToCursor = sqrt(distanceToCursorSq);
 						float cursorFraction = smoothstep(_SparkerOuterFalloff, _SparkerInnerFalloff, distanceToCursor);
-						float creationThreshold = lerp(1.001, _SparkerCreationThreshold, cursorFraction);
+						float creationProbability = (_SparkerCreationProbability * cursorFraction);
 
-						if (creationThreshold < dynamicRandom.x)
+						if (dynamicRandom.x < creationProbability)
 						{
 							result.y = lerp(0.25, 1.0, dynamicRandom.y);
 							result.z = floor(7.999 * dynamicRandom.z);

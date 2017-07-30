@@ -31,4 +31,5 @@ Material:
     - _MaxMutationStep: 0.005
     - _MaxSpeed: 2
     - _MinSpeed: 0
+    - _StraightMovementProbability: 0.98
     m_Colors: []
