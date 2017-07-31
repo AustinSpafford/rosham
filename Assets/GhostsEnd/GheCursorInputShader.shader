@@ -97,6 +97,7 @@
 						{
 							result.y = lerp(0.25, 1.0, dynamicRandom.y);
 							result.z = floor(7.999 * dynamicRandom.z);
+							result.w = 1.0;
 						}
 					}
 				}

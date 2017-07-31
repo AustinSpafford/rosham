@@ -30,10 +30,15 @@ Material:
     - _AmbientSpawnMaxProbability: 0
     - _AmbientSpawnMinProbability: 0.01
     - _AmbientSpawnProbability: 0
+    - _BurstSpawnAverageIterationPeriod: 360
     - _BurstSpawnInnerRadius: 0
+    - _BurstSpawnIterationDuration: 30
     - _BurstSpawnOuterRadius: 0.5
-    - _BurstSpawnPerCellProbability: 0.1
+    - _BurstSpawnPerCellProbability: 0.2
     - _BurstSpawnPerFrameProbability: 0.005
+    - _BurstSpawnRadius: 0.3
+    - _BurstSpawnRadiusMax: 0.8
+    - _BurstSpawnRadiusMin: 0.4
     - _ImmunityDecayRate: 1
     - _MaxMutationStep: 0.005
     - _MaxSpeed: 2

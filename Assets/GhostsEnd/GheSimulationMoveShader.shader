@@ -7,9 +7,10 @@
 		
 		_AmbientSpawnProbability("Ambient-Spawn Probability", Range(0, 1)) = 0.01
 
-		_BurstSpawnPerFrameProbability("Burst-Spawn Per-Frame Probability", Range(0, 1)) = 0.01
-		_BurstSpawnInnerRadius("Burst-Spawn Inner Radius", Float) = 0.0
-		_BurstSpawnOuterRadius("Burst-Spawn Outer Radius", Float) = 0.25
+		_BurstSpawnAverageIterationPeriod("Burst-Spawn Average Iteration Period", Int) = 120
+		_BurstSpawnIterationDuration("Burst-Spawn Iteration Duration", Int) = 30
+		_BurstSpawnRadiusMin("Burst-Spawn Radius Min", Float) = 0.05
+		_BurstSpawnRadiusMax("Burst-Spawn Radius Max", Float) = 0.5
 		_BurstSpawnPerCellProbability("Burst-Spawn Per-Cell Probability", Range(0, 1)) = 0.02
 
 		_SparkAgingRate("Spark Aging Rate", Float) = 0.1
@@ -55,9 +56,10 @@
 
 			uniform float _AmbientSpawnProbability;
 			
-			uniform float _BurstSpawnPerFrameProbability;
-			uniform float _BurstSpawnInnerRadius;
-			uniform float _BurstSpawnOuterRadius;
+			uniform int _BurstSpawnAverageIterationPeriod;
+			uniform int _BurstSpawnIterationDuration;
+			uniform float _BurstSpawnRadiusMin;
+			uniform float _BurstSpawnRadiusMax;
 			uniform float _BurstSpawnPerCellProbability;
 
 			uniform float _SparkAgingRate;
@@ -136,12 +138,13 @@
 						float4 neighbor = tex2D(_MainTex, neighborCoord);
 
 						// Become the spark.
-						result.y = neighbor.y;
-						result.z = neighbor.z;
+						result.yzw = neighbor.yzw;
 
 						float selfBrightness = SampleWebcamBrightness(inputs.uv);
 
-						if (dynamicRandom.x < _WebcamSteeringProbability)
+						float effectiveWebcamSteeringProbability = (result.w * _WebcamSteeringProbability);
+
+						if (dynamicRandom.x < effectiveWebcamSteeringProbability)
 						{
 							float leftBrightness = SampleWebcamBrightnessForSteering(inputs.uv, result, 1);
 							float centerBrightness = SampleWebcamBrightnessForSteering(inputs.uv, result, 0);
@@ -162,7 +165,7 @@
 
 							result.z = SnapDirection(result.z + directionDelta);
 						}
-						else if (((1.0 - _WebcamSteeringProbability) * dynamicRandom.y) < _RandomSteeringProbability)
+						else if (((1.0 - effectiveWebcamSteeringProbability) * dynamicRandom.y) < _RandomSteeringProbability)
 						{
 							result.z = SnapDirection(result.z + ((dynamicRandom.z < 0.5) ? 1.0 : -1.0));
 						}
@@ -170,28 +173,50 @@
 					else // Else we're just an empty cell with nothing special going on.
 					{
 						// Spawn burst-sparks.
-						if (_SimulationIterationRandomFraction < _BurstSpawnPerFrameProbability)
 						{
-							// Note: We're using perspective-correction to make the burst circular (instead of an oval).
-							float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
-							float2 burstCenterCoord = lerp(-1, 1, Random2(_SimulationIterationRandomFraction));
+							uint currentPeriodIndex = ((uint)_SimulationIterationIndex / (uint)_BurstSpawnAverageIterationPeriod);
+							uint currentSubperiodIndex = (_SimulationIterationIndex - (currentPeriodIndex * _BurstSpawnAverageIterationPeriod));
 
-							// Bias towards the center to increase the odds of highlighting the face.
-							burstCenterCoord = (sign(burstCenterCoord) * pow(abs(burstCenterCoord), 2.0));
+							float4 burstSpawnRandom = Random4(currentPeriodIndex);
 
-							float2 selfToBurstCenterDelta = (burstCenterCoord - testCoord);
-							float distanceToBurstCenterSq = dot(selfToBurstCenterDelta, selfToBurstCenterDelta);
+							float burstStartSubperiodIndex = (burstSpawnRandom.x * (_BurstSpawnAverageIterationPeriod - _BurstSpawnIterationDuration));
+							float burstProgressFraction = saturate((currentSubperiodIndex - burstStartSubperiodIndex) / (float)_BurstSpawnIterationDuration);
 
-							if (distanceToBurstCenterSq <= (_BurstSpawnOuterRadius * _BurstSpawnOuterRadius))
+							// If a burst is currently active.
+							if ((0.0 < burstProgressFraction) && (burstProgressFraction < 1.0))
 							{
-								float distanceToBurstCenter = sqrt(distanceToBurstCenterSq);
-								float burstFraction = smoothstep(_BurstSpawnOuterRadius, _BurstSpawnInnerRadius, distanceToBurstCenter);
-								float creationProbability = (_BurstSpawnPerCellProbability * burstFraction);
+								float eventualBurstRadius = lerp(_BurstSpawnRadiusMin, _BurstSpawnRadiusMax, burstSpawnRandom.y);
+								float currentBurstRadius = (burstProgressFraction * eventualBurstRadius);
 
-								if (dynamicRandom.x < creationProbability)
+								// Note: We're using perspective-correction to make the burst circular (instead of an oval).
+								float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
+								float2 burstCenterCoord = lerp(-1, 1, burstSpawnRandom.zw);
+
+								// Bias towards the center to increase the odds of highlighting the face.
+								burstCenterCoord = (sign(burstCenterCoord) * pow(abs(burstCenterCoord), 3.0));
+
+								float2 selfToBurstCenterDelta = (burstCenterCoord - testCoord);
+								float distanceToBurstCenterSq = dot(selfToBurstCenterDelta, selfToBurstCenterDelta);
+
+								if (distanceToBurstCenterSq <= (currentBurstRadius * currentBurstRadius))
 								{
-									result.y = lerp(0.25, 1.0, dynamicRandom.z);
-									result.z = floor(7.999 * dynamicRandom.w);
+									float distanceToBurstCenter = sqrt(distanceToBurstCenterSq);
+									
+									float burstStrengthFraction = (
+										pow((distanceToBurstCenter / currentBurstRadius), 2.0) *
+										(1.0 - burstProgressFraction));
+
+									float creationProbability = (_BurstSpawnPerCellProbability * burstStrengthFraction);
+									
+									// Note: Massive wonkiness was happening when trying to compare super-low probabilities,
+									// hence the bodged approach of testing against two random values.
+									if ((dynamicRandom.x < creationProbability) &&
+										(dynamicRandom.y < creationProbability))
+									{
+										result.y = lerp(0.25, 1.0, dynamicRandom.z);
+										result.z = floor(7.999 * dynamicRandom.w);
+										result.w = 1.0;
+									}
 								}
 							}
 						}
@@ -209,8 +234,9 @@
 								if ((dynamicRandom.x < _AmbientSpawnProbability) &&
 									(dynamicRandom.y < _AmbientSpawnProbability))
 								{
-									result.y = lerp(0.25, 1.0, dynamicRandom.z);
+									result.y = lerp(0.02, 0.1, dynamicRandom.z);
 									result.z = floor(7.999 * dynamicRandom.w);
+									result.w = 0.1;
 								}
 							}
 						}
@@ -251,7 +277,7 @@
 					result.x = max(0.0, (result.x - 0.02));
 				}
 
-				result.w = SampleWebcamBrightnessForSteering(inputs.uv, result, 0);
+				//result.w = SampleWebcamBrightnessForSteering(inputs.uv, result, 0);
 
 				return result;
 			}
