@@ -30,6 +30,10 @@ Material:
     - _AmbientSpawnMaxProbability: 0
     - _AmbientSpawnMinProbability: 0.01
     - _AmbientSpawnProbability: 0
+    - _BurstSpawnInnerRadius: 0
+    - _BurstSpawnOuterRadius: 0.5
+    - _BurstSpawnPerCellProbability: 0.1
+    - _BurstSpawnPerFrameProbability: 0.005
     - _ImmunityDecayRate: 1
     - _MaxMutationStep: 0.005
     - _MaxSpeed: 2

@@ -5,7 +5,12 @@
 		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
 		_WebcamTex("Webcam Texture", 2D) = "black" {}
 		
-		_AmbientSpawnProbability("Ambient Spawn Probability", Range(0, 1)) = 0.01
+		_AmbientSpawnProbability("Ambient-Spawn Probability", Range(0, 1)) = 0.01
+
+		_BurstSpawnPerFrameProbability("Burst-Spawn Per-Frame Probability", Range(0, 1)) = 0.01
+		_BurstSpawnInnerRadius("Burst-Spawn Inner Radius", Float) = 0.0
+		_BurstSpawnOuterRadius("Burst-Spawn Outer Radius", Float) = 0.25
+		_BurstSpawnPerCellProbability("Burst-Spawn Per-Cell Probability", Range(0, 1)) = 0.02
 
 		_SparkAgingRate("Spark Aging Rate", Float) = 0.1
 			
@@ -49,7 +54,14 @@
 			uniform float _DeltaTime;
 
 			uniform float _AmbientSpawnProbability;
+			
+			uniform float _BurstSpawnPerFrameProbability;
+			uniform float _BurstSpawnInnerRadius;
+			uniform float _BurstSpawnOuterRadius;
+			uniform float _BurstSpawnPerCellProbability;
+
 			uniform float _SparkAgingRate;
+
 			uniform float _WebcamSteeringProbability;
 			uniform float _RandomSteeringProbability;
 
@@ -157,18 +169,49 @@
 					}
 					else // Else we're just an empty cell with nothing special going on.
 					{
-						float webcamBrightness = SampleWebcamBrightness(inputs.uv);
-
-						// If we're inside the webcam image.
-						if (webcamBrightness > 0.0)
+						// Spawn burst-sparks.
+						if (_SimulationIterationRandomFraction < _BurstSpawnPerFrameProbability)
 						{
-							// Note: Massive wonkiness was happening when trying to compare super-low probabilities,
-							// hence the bodged approach of testing against two random values.
-							if ((dynamicRandom.x < _AmbientSpawnProbability) &&
-								(dynamicRandom.y < _AmbientSpawnProbability))
+							// Note: We're using perspective-correction to make the burst circular (instead of an oval).
+							float2 testCoord = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
+							float2 burstCenterCoord = lerp(-1, 1, Random2(_SimulationIterationRandomFraction));
+
+							// Bias towards the center to increase the odds of highlighting the face.
+							burstCenterCoord = (sign(burstCenterCoord) * pow(abs(burstCenterCoord), 2.0));
+
+							float2 selfToBurstCenterDelta = (burstCenterCoord - testCoord);
+							float distanceToBurstCenterSq = dot(selfToBurstCenterDelta, selfToBurstCenterDelta);
+
+							if (distanceToBurstCenterSq <= (_BurstSpawnOuterRadius * _BurstSpawnOuterRadius))
 							{
-								result.y = lerp(0.25, 1.0, dynamicRandom.z);
-								result.z = floor(7.999 * dynamicRandom.w);
+								float distanceToBurstCenter = sqrt(distanceToBurstCenterSq);
+								float burstFraction = smoothstep(_BurstSpawnOuterRadius, _BurstSpawnInnerRadius, distanceToBurstCenter);
+								float creationProbability = (_BurstSpawnPerCellProbability * burstFraction);
+
+								if (dynamicRandom.x < creationProbability)
+								{
+									result.y = lerp(0.25, 1.0, dynamicRandom.z);
+									result.z = floor(7.999 * dynamicRandom.w);
+								}
+							}
+						}
+
+						// Spawn ambient-sparks.
+						if (_AmbientSpawnProbability > 0.0)
+						{
+							float webcamBrightness = SampleWebcamBrightness(inputs.uv);
+
+							// If we're inside the webcam image.
+							if (webcamBrightness > 0.0)
+							{
+								// Note: Massive wonkiness was happening when trying to compare super-low probabilities,
+								// hence the bodged approach of testing against two random values.
+								if ((dynamicRandom.x < _AmbientSpawnProbability) &&
+									(dynamicRandom.y < _AmbientSpawnProbability))
+								{
+									result.y = lerp(0.25, 1.0, dynamicRandom.z);
+									result.z = floor(7.999 * dynamicRandom.w);
+								}
 							}
 						}
 					}
