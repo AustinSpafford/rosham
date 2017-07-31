@@ -5,7 +5,12 @@
 		_MainTex("Primary Texture (iterative)", 2D) = "black" {}
 		_WebcamTex("Webcam Texture", 2D) = "black" {}
 		
-		_StraightMovementProbability("Straight Movement Probability", Range(0, 1)) = 0.99
+		_AmbientSpawnProbability("Ambient Spawn Probability", Range(0, 1)) = 0.01
+
+		_SparkAgingRate("Spark Aging Rate", Float) = 0.1
+			
+		_WebcamSteeringProbability("Webcam Steering Probability", Range(0, 1)) = 0.9
+		_RandomSteeringProbability("Random Steering Probability", Range(0, 1)) = 0.02
 	}
 
 	SubShader
@@ -22,6 +27,7 @@
 			#pragma fragment FragmentMain
 			
 			#include "UnityCG.cginc"
+			#include "..\ShaderIncludes\Coordinates.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
 
 			#include "GheCommon.cginc"
@@ -42,7 +48,12 @@
 			uniform float _SimulationIterationRandomFraction;
 			uniform float _DeltaTime;
 
-			uniform float _StraightMovementProbability;
+			uniform float _AmbientSpawnProbability;
+			uniform float _SparkAgingRate;
+			uniform float _WebcamSteeringProbability;
+			uniform float _RandomSteeringProbability;
+
+			uniform int _WebcamIsLeftRightMirrored;
 
 			VertexToFragment VertexMain(
 				appdata vertexData)
@@ -59,6 +70,40 @@
 			sampler2D _WebcamTex;
 			uniform half4 _WebcamTex_TexelSize;
 
+			float SampleWebcamBrightness(
+				float2 canvasCoord)
+			{
+				float2 webcamCoord = TransformFromCanvasTextureToFramedTexture(canvasCoord, _MainTex_TexelSize.zw, _WebcamTex_TexelSize.zw);
+
+				if (_WebcamIsLeftRightMirrored)
+				{
+					webcamCoord.x = lerp(1, 0, webcamCoord.x);
+				}
+
+				float4 webcamSample =
+					TextureCoordIsInBounds(webcamCoord) ?
+						tex2D(_WebcamTex, webcamCoord) :
+						float4(0, 0, 0, 1);
+
+				float webcamBrightness = (0.333 * (webcamSample.r + webcamSample.g + webcamSample.b));
+
+				return webcamBrightness;
+			}
+
+			float SampleWebcamBrightnessForSteering(
+				float2 sparkCoord,
+				float4 sparkState,
+				float directionDelta)
+			{
+				float direction = SnapDirection(sparkState.z + directionDelta);
+
+				float2 kernelCell = kNeighborhoodKernel[FloatToIntRound(direction)];
+					
+				float2 canvasNeighborCoord = (sparkCoord + (kernelCell.xy * _MainTex_TexelSize.xy));
+
+				return SampleWebcamBrightness(canvasNeighborCoord);
+			}
+
 			float4 FragmentMain(
 				VertexToFragment inputs) : SV_Target
 			{
@@ -66,7 +111,7 @@
 
 				float4 result = self;
 				
-				float2 dynamicRandom = Random2(inputs.uv + _SimulationIterationRandomFraction);
+				float4 dynamicRandom = Random4(inputs.uv + _SimulationIterationRandomFraction);
 
 				if (self.y <= 0.0)
 				{
@@ -82,10 +127,49 @@
 						result.y = neighbor.y;
 						result.z = neighbor.z;
 
-						// Randomly steer around.
-						if (_StraightMovementProbability < dynamicRandom.x)
+						float selfBrightness = SampleWebcamBrightness(inputs.uv);
+
+						if (dynamicRandom.x < _WebcamSteeringProbability)
 						{
-							result.z = SnapDirection(result.z + ((dynamicRandom.y < 0.5) ? 1.0 : -1.0));
+							float leftBrightness = SampleWebcamBrightnessForSteering(inputs.uv, result, 1);
+							float centerBrightness = SampleWebcamBrightnessForSteering(inputs.uv, result, 0);
+							float rightBrightness = SampleWebcamBrightnessForSteering(inputs.uv, result, -1);
+
+							/*
+							float totalBrightness = (leftBrightness + centerBrightness + rightBrightness);
+							float randomBrightness = (dynamicRandom.z * totalBrightness);
+
+							float directionDelta =
+								(randomBrightness < leftBrightness) ? -1 :
+								(((totalBrightness - rightBrightness) < randomBrightness) ? 1 : 0);
+							*/
+
+							bool leftIsBrightest = ((leftBrightness > centerBrightness) && (leftBrightness > rightBrightness));
+							bool rightIsBrightest = ((rightBrightness > centerBrightness) && (rightBrightness > leftBrightness));
+							float directionDelta = (leftIsBrightest ? 1 : (rightIsBrightest ? -1 : 0));
+
+							result.z = SnapDirection(result.z + directionDelta);
+						}
+						else if (((1.0 - _WebcamSteeringProbability) * dynamicRandom.y) < _RandomSteeringProbability)
+						{
+							result.z = SnapDirection(result.z + ((dynamicRandom.z < 0.5) ? 1.0 : -1.0));
+						}
+					}
+					else // Else we're just an empty cell with nothing special going on.
+					{
+						float webcamBrightness = SampleWebcamBrightness(inputs.uv);
+
+						// If we're inside the webcam image.
+						if (webcamBrightness > 0.0)
+						{
+							// Note: Massive wonkiness was happening when trying to compare super-low probabilities,
+							// hence the bodged approach of testing against two random values.
+							if ((dynamicRandom.x < _AmbientSpawnProbability) &&
+								(dynamicRandom.y < _AmbientSpawnProbability))
+							{
+								result.y = lerp(0.25, 1.0, dynamicRandom.z);
+								result.z = floor(7.999 * dynamicRandom.w);
+							}
 						}
 					}
 				}
@@ -114,7 +198,7 @@
 				if (result.y > 0.0)
 				{
 					result.x = max(result.x, pow(result.y, 0.25));
-					result.y = max(0.0, (result.y - 0.001));
+					result.y = max(0.0, (result.y - (_SparkAgingRate * _DeltaTime)));
 
 					// If the spark just died, clear the direction to keep it from appearing to be an empty spaec that failed its handshake.
 					result.z = ((result.y <= 0.0) ? -1.0 : result.z);
@@ -123,6 +207,8 @@
 				{
 					result.x = max(0.0, (result.x - 0.02));
 				}
+
+				result.w = SampleWebcamBrightnessForSteering(inputs.uv, result, 0);
 
 				return result;
 			}

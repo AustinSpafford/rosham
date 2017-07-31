@@ -277,13 +277,20 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 517853338}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: abbb2325736c1e74f982a9dfe3044011, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   TargetMaterial: {fileID: 2100000, guid: d6155ad8477b20b458c318863d5cf509, type: 2}
   ShaderTextureName: _WebcamTex
+  WebcamDesired: 1
+  LeftRightMirrorWebcam: 1
+  FallbackTextures:
+  - {fileID: 0}
+  DisplayFallbacksSequentially: 0
+  MinSecondsPerFallbackChange: 2
+  MaxSecondsPerFallbackChange: 5
   DebugLoggingEnabled: 0
 --- !u!1 &633788537
 GameObject:

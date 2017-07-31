@@ -31,6 +31,19 @@ float3 Random3(
 	return frac(sin(testPointInGeneratorSpace) * 43758.5453);
 }
 
+float4 Random4(
+	float2 testCoord)
+{
+	// From: https://www.shadertoy.com/view/Xd23Dh
+	float4 testPointInGeneratorSpace = float4(
+		dot(testCoord, float2(127.1, 311.7)),
+		dot(testCoord, float2(269.5, 183.3)),
+		dot(testCoord, float2(419.2, 371.9)),
+		dot(testCoord, float2(810.5, 235.0)));
+
+	return frac(sin(testPointInGeneratorSpace) * 43758.5453);
+}
+
 float VoroNoise(
 	float2 testCoord,
 	float jitterFraction,

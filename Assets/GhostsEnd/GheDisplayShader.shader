@@ -24,6 +24,7 @@
 			
 			#include "UnityCG.cginc"
 			#include "..\ShaderIncludes\ColorSpaces.cginc"
+			#include "..\ShaderIncludes\Coordinates.cginc"
 			#include "..\ShaderIncludes\Random.cginc"
 
 			struct appdata // TODO: Can this be renamed?
@@ -81,6 +82,19 @@
 					result = float4(0, ((self.z + 1.0) / 8.0), 0, 1);
 				}
 				*/
+
+				/*
+				float2 testPoint = TextureCoordToPerspectiveCorrected(inputs.uv, _MainTex_TexelSize.zw);
+				float2 framedTextureCoord = TransformFromCanvasTextureToFramedTexture(inputs.uv, _MainTex_TexelSize.zw, float2(16.0, 9.0));
+
+				result = float4(
+					frac(max(abs(testPoint.x), abs(testPoint.y))), 
+					frac(max(abs(framedTextureCoord.x), abs(framedTextureCoord.y))), 
+					(TextureCoordIsInBounds(framedTextureCoord) ? 0.0 : 1.0),
+					1);
+				*/
+
+				//result.rgb = lerp(self.w, result.rgb, result.b);
 
 				return result;
 			}
