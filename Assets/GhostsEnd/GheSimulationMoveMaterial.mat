@@ -40,6 +40,9 @@ Material:
     - _BurstSpawnRadiusMax: 0.8
     - _BurstSpawnRadiusMin: 0.4
     - _ImmunityDecayRate: 1
+    - _LightningSpawnAverageIterationPeriod: 1200
+    - _LightningSpawnIterationDuration: 5
+    - _LightningSpawnPerCellProbability: 0.1
     - _MaxMutationStep: 0.005
     - _MaxSpeed: 2
     - _MinSpeed: 0

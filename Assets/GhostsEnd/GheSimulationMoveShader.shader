@@ -12,6 +12,10 @@
 		_BurstSpawnRadiusMin("Burst-Spawn Radius Min", Float) = 0.05
 		_BurstSpawnRadiusMax("Burst-Spawn Radius Max", Float) = 0.5
 		_BurstSpawnPerCellProbability("Burst-Spawn Per-Cell Probability", Range(0, 1)) = 0.02
+			
+		_LightningSpawnAverageIterationPeriod("Lightning-Spawn Average Iteration Period", Int) = 1200
+		_LightningSpawnIterationDuration("Lightning-Spawn Iteration Duration", Int) = 30
+		_LightningSpawnPerCellProbability("Lightning-Spawn Per-Cell Probability", Range(0, 1)) = 0.001
 
 		_SparkAgingRate("Spark Aging Rate", Float) = 0.1
 			
@@ -61,6 +65,10 @@
 			uniform float _BurstSpawnRadiusMin;
 			uniform float _BurstSpawnRadiusMax;
 			uniform float _BurstSpawnPerCellProbability;
+			
+			uniform int _LightningSpawnAverageIterationPeriod;
+			uniform int _LightningSpawnIterationDuration;
+			uniform float _LightningSpawnPerCellProbability;
 
 			uniform float _SparkAgingRate;
 
@@ -171,7 +179,27 @@
 						}
 					}
 					else // Else we're just an empty cell with nothing special going on.
-					{
+					{\
+						// Spawn ambient-sparks.
+						if (_AmbientSpawnProbability > 0.0)
+						{
+							float webcamBrightness = SampleWebcamBrightness(inputs.uv);
+
+							// If we're inside the webcam image.
+							if (webcamBrightness > 0.0)
+							{
+								// Note: Massive wonkiness was happening when trying to compare super-low probabilities,
+								// hence the bodged approach of testing against two random values.
+								if ((dynamicRandom.x < _AmbientSpawnProbability) &&
+									(dynamicRandom.y < _AmbientSpawnProbability))
+								{
+									result.y = lerp(0.02, 0.1, dynamicRandom.z);
+									result.z = floor(7.999 * dynamicRandom.w);
+									result.w = 0.1;
+								}
+							}
+						}
+
 						// Spawn burst-sparks.
 						{
 							uint currentPeriodIndex = ((uint)_SimulationIterationIndex / (uint)_BurstSpawnAverageIterationPeriod);
@@ -221,22 +249,29 @@
 							}
 						}
 
-						// Spawn ambient-sparks.
-						if (_AmbientSpawnProbability > 0.0)
+						// Spawn lightning-sparks.
 						{
-							float webcamBrightness = SampleWebcamBrightness(inputs.uv);
+							uint currentPeriodIndex = ((uint)_SimulationIterationIndex / (uint)_LightningSpawnAverageIterationPeriod);
+							uint currentSubperiodIndex = (_SimulationIterationIndex - (currentPeriodIndex * _LightningSpawnAverageIterationPeriod));
 
-							// If we're inside the webcam image.
-							if (webcamBrightness > 0.0)
+							float4 lightningSpawnRandom = Random4(currentPeriodIndex);
+
+							float lightningStartSubperiodIndex = (lightningSpawnRandom.x * (_LightningSpawnAverageIterationPeriod - _LightningSpawnIterationDuration));
+							float lightningProgressFraction = saturate((currentSubperiodIndex - lightningStartSubperiodIndex) / (float)_LightningSpawnIterationDuration);
+
+							// If a lightning blast is currently active.
+							if ((0.0 < lightningProgressFraction) && (lightningProgressFraction < 1.0))
 							{
+								float creationProbability = lerp(_LightningSpawnPerCellProbability, 0.0, lightningProgressFraction);
+									
 								// Note: Massive wonkiness was happening when trying to compare super-low probabilities,
 								// hence the bodged approach of testing against two random values.
-								if ((dynamicRandom.x < _AmbientSpawnProbability) &&
-									(dynamicRandom.y < _AmbientSpawnProbability))
+								if ((dynamicRandom.x < creationProbability) &&
+									(dynamicRandom.y < creationProbability))
 								{
-									result.y = lerp(0.02, 0.1, dynamicRandom.z);
+									result.y = lerp(0.01, 0.5, pow(dynamicRandom.z, 2.0));
 									result.z = floor(7.999 * dynamicRandom.w);
-									result.w = 0.1;
+									result.w = 0.5;
 								}
 							}
 						}
