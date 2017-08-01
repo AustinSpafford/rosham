@@ -284,13 +284,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TargetMaterial: {fileID: 2100000, guid: d6155ad8477b20b458c318863d5cf509, type: 2}
   ShaderTextureName: _WebcamTex
-  WebcamDesired: 1
+  WebcamDesired: 0
   LeftRightMirrorWebcam: 1
   FallbackTextures:
-  - {fileID: 0}
+  - {fileID: 2800000, guid: f28038461d4f0ae4fa755e3de8549455, type: 3}
+  - {fileID: 2800000, guid: 8a423a6933afeb84a8b6a652d4ccb5a0, type: 3}
+  - {fileID: 2800000, guid: e74cc0bbfb80a3e42b19f013a555f1fa, type: 3}
+  - {fileID: 2800000, guid: a040612e0d3c9ce41a2d6063445a7b1a, type: 3}
+  - {fileID: 2800000, guid: bf34cd92cbbc3d946b5dab5a01102dcf, type: 3}
   DisplayFallbacksSequentially: 0
-  MinSecondsPerFallbackChange: 2
-  MaxSecondsPerFallbackChange: 5
+  MinSecondsPerFallbackChange: 15
+  MaxSecondsPerFallbackChange: 25
   DebugLoggingEnabled: 0
 --- !u!1 &633788537
 GameObject:

@@ -53,10 +53,30 @@ public class WebcamBinder : MonoBehaviour
 
 			if (secondsUntilFallbackChange <= 0.0f)
 			{
-				currentFallbackTextureIndex = 
-					DisplayFallbacksSequentially ? 
-						((currentFallbackTextureIndex + 1) % FallbackTextures.Count) :
-						Random.Range(0, FallbackTextures.Count); // TODO: Avoid duplicates.
+				int newFallbackTextureIndex;
+				if (DisplayFallbacksSequentially)
+				{
+					newFallbackTextureIndex = ((currentFallbackTextureIndex + 1) % FallbackTextures.Count);
+				}
+				else
+				{
+					if (FallbackTextures.Count > 1)
+					{
+						// Avoid repeats by only choosing among textures *other* than the current one.
+						newFallbackTextureIndex = Random.Range(0, (FallbackTextures.Count - 1));
+
+						if (newFallbackTextureIndex >= currentFallbackTextureIndex)
+						{
+							newFallbackTextureIndex++;
+						}
+					}
+					else
+					{
+						newFallbackTextureIndex = 0;
+					}
+				}
+
+				currentFallbackTextureIndex = newFallbackTextureIndex;
 
 				TargetMaterial.SetTexture(ShaderTextureName, FallbackTextures[currentFallbackTextureIndex]);
 				
