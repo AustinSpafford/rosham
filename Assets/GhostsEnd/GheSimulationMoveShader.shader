@@ -179,7 +179,7 @@
 						}
 					}
 					else // Else we're just an empty cell with nothing special going on.
-					{\
+					{
 						// Spawn ambient-sparks.
 						if (_AmbientSpawnProbability > 0.0)
 						{
