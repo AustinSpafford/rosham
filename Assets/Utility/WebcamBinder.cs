@@ -29,6 +29,32 @@ public class WebcamBinder : MonoBehaviour
 
 	public void Update()
 	{
+		if ((webLoader != null) &&
+			webLoader.isDone)
+		{
+			if (System.String.IsNullOrEmpty(webLoader.error))
+			{
+				Texture2D webTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
+
+				webLoader.LoadImageIntoTexture(webTexture);
+
+				FallbackTextures.Clear();
+				FallbackTextures.Add(webTexture);
+		
+				WebcamDesired = false;
+				secondsUntilFallbackChange = 0.0f;
+			}
+			else
+			{
+				ErrorMessageDisplay errorMessageDisplay = GameObject.FindObjectOfType<ErrorMessageDisplay>();
+
+				errorMessageDisplay.DisplayMessage("Error: " + webLoader.error);
+			}
+			
+			webLoader.Dispose();
+			webLoader = null;
+		}
+
 		if (webcamTexture.isPlaying && !WebcamDesired)
 		{
 			webcamTexture.Stop();
@@ -86,8 +112,22 @@ public class WebcamBinder : MonoBehaviour
 			}
 		}
 	}
+
+	public void HaaaaaackLoadFallbackFromUrl(
+		UnityEngine.UI.Text urlSource)
+	{
+		if (webLoader != null)
+		{
+			webLoader.Dispose();
+			webLoader = null;
+		}
+
+		webLoader = new WWW(urlSource.text);
+	}
 	
 	private WebCamTexture webcamTexture = null;
+	
+	private WWW webLoader = null;
 
 	private int currentFallbackTextureIndex = -1;
 	private float secondsUntilFallbackChange = 0.0f;
