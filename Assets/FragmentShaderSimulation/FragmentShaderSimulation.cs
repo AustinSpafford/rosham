@@ -49,6 +49,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 			previousSimulationTexture = swapTemp;
 			
 			CursorInputMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+			CursorInputMaterial.SetFloat("_SimulationIterationRandomFraction", GetSimulationIterationRandomFraction());
 			CursorInputMaterial.SetFloat("_DeltaTime", Time.deltaTime);
 
 			Rect screenRect = new Rect(0, 0, Screen.width, Screen.height);
@@ -95,6 +96,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 					previousSimulationTexture = swapTemp;
 			
 					simulationPassMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+					simulationPassMaterial.SetFloat("_SimulationIterationRandomFraction", GetSimulationIterationRandomFraction());
 					simulationPassMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
 
 					Graphics.Blit(
@@ -117,6 +119,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 		else
 		{
 			DisplayMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
+			DisplayMaterial.SetFloat("_SimulationIterationRandomFraction", GetSimulationIterationRandomFraction());
 			DisplayMaterial.SetFloat("_DeltaTime", Time.deltaTime);
 
 			Graphics.Blit(
@@ -133,6 +136,15 @@ public class FragmentShaderSimulation : MonoBehaviour
 
 	private bool previousCursorIsActive = false;
 	private Vector3 previousCursorPosition = Vector3.zero;
+	
+	private float GetSimulationIterationRandomFraction()
+	{
+		int iterationHash = simulationIterationIndex.GetHashCode();
+
+		var conversionRandom = new System.Random(iterationHash);
+
+		return (float)conversionRandom.NextDouble();
+	}
 
 	private void CreateOrUpdateRenderTextureConfiguration(
 		ref RenderTexture inoutTexture,
