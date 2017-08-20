@@ -42,6 +42,7 @@
 			uniform float _BlueprintFalloff;
 			uniform float _EraserFalloff;
 
+			uniform float _SimulationSeedFraction;
 			uniform int _SimulationIterationIndex;
 			uniform float _DeltaTime;
 

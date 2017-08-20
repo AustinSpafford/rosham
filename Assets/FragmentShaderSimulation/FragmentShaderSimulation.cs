@@ -19,6 +19,9 @@ public class FragmentShaderSimulation : MonoBehaviour
 	public Material DisplayMaterial = null;
 	public Material CursorInputMaterial = null;
 
+	[Tooltip("When 0, a random seed will be chosen upon script-start.")]
+	public int OptionalSimulationSeed = 0;
+
 	public int IterationsPerUpdate = 1;
 	
 	public bool DebugLoggingEnabled = false;
@@ -31,6 +34,21 @@ public class FragmentShaderSimulation : MonoBehaviour
 		if (DisplayTexture == null)
 		{
 			CreateOrUpdateRenderTextureConfiguration(ref DisplayTexture, false, "display");
+		}
+	}
+
+	public void Start()
+	{
+		if (OptionalSimulationSeed == 0)
+		{
+			OptionalSimulationSeed = Random.Range(1, (1 << 30));
+		}
+
+		// Generate the simulation-seed for use in the shaders.
+		{
+			System.Random simulationRandom = new System.Random(OptionalSimulationSeed);
+
+			activeSimulationSeedFraction = (float)simulationRandom.NextDouble();
 		}
 	}
 
@@ -47,7 +65,8 @@ public class FragmentShaderSimulation : MonoBehaviour
 			RenderTexture swapTemp = currentSimulationTexture;
 			currentSimulationTexture = previousSimulationTexture;
 			previousSimulationTexture = swapTemp;
-			
+
+			CursorInputMaterial.SetFloat("_SimulationSeedFraction", activeSimulationSeedFraction);
 			CursorInputMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
 			CursorInputMaterial.SetFloat("_SimulationIterationRandomFraction", GetSimulationIterationRandomFraction());
 			CursorInputMaterial.SetFloat("_DeltaTime", Time.deltaTime);
@@ -95,6 +114,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 					currentSimulationTexture = previousSimulationTexture;
 					previousSimulationTexture = swapTemp;
 			
+					simulationPassMaterial.SetFloat("_SimulationSeedFraction", activeSimulationSeedFraction);
 					simulationPassMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
 					simulationPassMaterial.SetFloat("_SimulationIterationRandomFraction", GetSimulationIterationRandomFraction());
 					simulationPassMaterial.SetFloat("_DeltaTime", iterationDeltaTime);
@@ -118,6 +138,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 		}
 		else
 		{
+			DisplayMaterial.SetFloat("_SimulationSeedFraction", activeSimulationSeedFraction);
 			DisplayMaterial.SetInt("_SimulationIterationIndex", simulationIterationIndex);
 			DisplayMaterial.SetFloat("_SimulationIterationRandomFraction", GetSimulationIterationRandomFraction());
 			DisplayMaterial.SetFloat("_DeltaTime", Time.deltaTime);
@@ -132,6 +153,7 @@ public class FragmentShaderSimulation : MonoBehaviour
 	private RenderTexture currentSimulationTexture = null;
 	private RenderTexture previousSimulationTexture = null;
 
+	private float activeSimulationSeedFraction = 0.0f;
 	private int simulationIterationIndex = 0;	
 
 	private bool previousCursorIsActive = false;
@@ -181,7 +203,9 @@ public class FragmentShaderSimulation : MonoBehaviour
 				{
 					Debug.LogFormat("Initializing the \"{0}\" simulation texture (via the initialzation material).", debugTextureName);
 				}
-				
+								
+				InitializationMaterial.SetFloat("_SimulationSeedFraction", activeSimulationSeedFraction);
+
 				InitializationMaterial.SetVector(
 					"_MainTex_TexelSize", 
 					new Vector4(

@@ -48,6 +48,8 @@
 			uniform int _VeinMinOre;
 			uniform int _VeinMaxOre;
 
+			uniform float _SimulationSeedFraction;
+
 			VertexToFragment VertexMain(
 				appdata vertexData)
 			{
@@ -69,7 +71,7 @@
 
 				// Add veins.
 				{
-					float veinNoise = VoroNoise((10.0 * testCoord), 1, 1);
+					float veinNoise = VoroNoise((10.0 * testCoord) + (1000.0 * _SimulationSeedFraction), 1, 1);
 
 					float veinFraction = smoothstep(_VeinThreshold, 1, veinNoise);					
 					float ore = ceil(veinFraction * _VeinMaxOre);

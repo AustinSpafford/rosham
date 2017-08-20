@@ -35,6 +35,7 @@
 				float4 vertex : SV_POSITION;
 			};
 
+			uniform float _SimulationSeedFraction;
 			uniform int _SimulationIterationIndex;
 			uniform float _DeltaTime;
 

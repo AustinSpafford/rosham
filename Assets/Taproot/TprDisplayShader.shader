@@ -52,6 +52,7 @@
 			uniform float4 _VeinEmptyColor;
 			uniform float4 _VeinFullColor;
 
+			uniform float _SimulationSeedFraction;
 			uniform int _SimulationIterationIndex;
 			uniform float _DeltaTime;
 

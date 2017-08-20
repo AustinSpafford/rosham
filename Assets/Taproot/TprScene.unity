@@ -252,6 +252,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 359365c1d8ea4614499afe91402e4018, type: 2}
   DisplayMaterial: {fileID: 2100000, guid: 882484b697e8c2c4fbeac3945530f453, type: 2}
   CursorInputMaterial: {fileID: 2100000, guid: 54786bc6587bc944598d41adb699d798, type: 2}
+  OptionalSimulationSeed: 0
   IterationsPerUpdate: 1
   DebugLoggingEnabled: 0
   DebugDisplayRawSimulation: 0
