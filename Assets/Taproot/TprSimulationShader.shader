@@ -67,7 +67,8 @@
 				{
 					// TODO: Maybe grow plants?
 				}
-				else if (IsType(self.x, kTypeConveyor))
+				else if (IsType(self.x, kTypeConveyorConnected) ||
+					IsType(self.x, kTypeConveyorDisconnected))
 				{
 					typeTransportsMaterials = true;
 				}
@@ -91,6 +92,9 @@
 
 				if (typeTransportsMaterials)
 				{
+					bool haveInitializedNeighbor = false;
+					float minDistanceThroughNeighbor = 1000000.0;
+
 					for (int index = 0; index < 8; index++)
 					{
 						float3 kernelCell = kNeighborhoodKernel[index];
@@ -103,11 +107,28 @@
 						{
 							float distanceThroughNeighbor = (neighbor.y + kernelCell.z);
 
-							self.y =
-								(self.y >= 0.0) ?
-									min(self.y, distanceThroughNeighbor) :
-									distanceThroughNeighbor;
+							minDistanceThroughNeighbor = min(minDistanceThroughNeighbor, distanceThroughNeighbor);
+							haveInitializedNeighbor = true;
 						}
+					}
+
+					if (haveInitializedNeighbor && 
+						(self.y != 0.0))
+					{
+						if (IsType(self.x, kTypeConveyorDisconnected) &&
+							(minDistanceThroughNeighbor <= self.y))
+						{
+							self.x = kTypeConveyorConnected;
+						}
+						else if (IsType(self.x, kTypeConveyorConnected) &&
+							(minDistanceThroughNeighbor > self.y))
+						{
+							self.x = kTypeConveyorDisconnected;
+						}
+
+						// NOTE: If we've become disconnected from the base, we'll start to float upwards
+						// in distance until reconnected. That's okay, since that's safe to do.
+						self.y = minDistanceThroughNeighbor;
 					}
 				}
 
