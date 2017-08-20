@@ -1,9 +1,10 @@
-#define kTypeBase      0.0
-#define kTypeBlueprint 1.0
-#define kTypeConveyor  2.0
-#define kTypeGround    3.0
-#define kTypeObstacle  4.0
-#define kTypeVein      5.0
+#define kTypeBase                 0.0
+#define kTypeBlueprint            1.0
+#define kTypeConveyorConnected    2.0
+#define kTypeConveyorDisconnected 3.0
+#define kTypeGround               4.0
+#define kTypeObstacle             5.0
+#define kTypeVein                 6.0
 
 bool IsType(
 	float candidate, 

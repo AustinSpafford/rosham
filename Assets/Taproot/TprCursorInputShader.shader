@@ -84,7 +84,7 @@
 					{					
 						if (IsType(self.x, kTypeGround))
 						{
-							result.x = kTypeConveyor;
+							result.x = kTypeConveyorDisconnected;
 							//result.x = kTypeBlueprint;
 							//result.w = -1; // Consume 1 plate to build the conveyor.
 						}
@@ -96,7 +96,9 @@
 				{
 					if (distanceToCursorSq <= (_EraserFalloff * _EraserFalloff))
 					{					
-						if (IsType(self.x, kTypeBlueprint))
+						if (IsType(self.x, kTypeBlueprint) ||
+							IsType(self.x, kTypeConveyorConnected) ||
+							IsType(self.x, kTypeConveyorDisconnected))
 						{
 							result.x = kTypeGround;
 							result.y = -1;
