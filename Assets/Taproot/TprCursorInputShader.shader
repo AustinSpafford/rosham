@@ -85,9 +85,7 @@
 					{					
 						if (IsType(self.x, kTypeGround))
 						{
-							result.x = kTypeConveyorDisconnected;
-							//result.x = kTypeBlueprint;
-							//result.w = -1; // Consume 1 plate to build the conveyor.
+							result = ConvertToBlueprint(result);
 						}
 					}
 				}

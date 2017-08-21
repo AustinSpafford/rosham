@@ -78,7 +78,6 @@
 
 					if (ore > (_VeinMinOre - 0.001))
 					{
-
 						result = float4(kTypeVein, -1, ore, 0);
 					}
 				}

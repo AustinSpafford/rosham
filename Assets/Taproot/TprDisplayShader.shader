@@ -88,15 +88,20 @@
 						_GrassColor,
 						(pow((Random(inputs.uv) - groundColorBiasNoise), 2.0) + groundColorBiasNoise));
 
-				if (IsType(self.x, kTypeConveyorConnected))
-				{
-					float pulseFraction = smoothstep(0.8, 1, sin((0.25 * self.y) + (0.1 * _SimulationIterationIndex)));
-
-					result = lerp(_ConveyorColor, float4(1.0, 0.75, 0.0, 1.0), pulseFraction);
-				}
-				else if (IsType(self.x, kTypeConveyorDisconnected))
+				float materialsOpacity = 0.5;
+				if (IsType(self.x, kTypeConveyorConnected) || 
+					IsType(self.x, kTypeConveyorDisconnected))
 				{
 					result = _ConveyorColor;
+
+					if (IsType(self.x, kTypeConveyorConnected))
+					{
+						float pulseFraction = smoothstep(0.8, 1, sin((0.25 * self.y) + (0.1 * _SimulationIterationIndex)));
+
+						result = lerp(result, float4(1.0, 0.75, 0.0, 1.0), pulseFraction);
+					}
+
+					materialsOpacity = 0.9; // Make the materials easier to see.
 				}
 				else if (IsType(self.x, kTypeBlueprint))
 				{
@@ -108,15 +113,24 @@
 				}
 				else if (IsType(self.x, kTypeVein))
 				{
+					float oreFraction = (self.z / 1000.0);
+
 					result = 
 						lerp(
 							result,
-							lerp(_VeinEmptyColor, _VeinFullColor, smoothstep(0.0, 50.0, self.z)),
-							smoothstep(0.0, 3.0, self.z));
+							lerp(_VeinEmptyColor, _VeinFullColor, smoothstep(0.0, 0.5, oreFraction)),
+							smoothstep(0.0, 0.03, oreFraction));
+
+					materialsOpacity = 0.0; // Redundantly showing ore is annoying.
 				}
 				else if (IsType(self.x, kTypeBase))
 				{
 					result = _BaseColor;
+				}
+
+				if (self.z > 0.0)
+				{
+					result = lerp(result, float4(0.55, 0.5, 0.6, 1), materialsOpacity);
 				}
 
 				return result;

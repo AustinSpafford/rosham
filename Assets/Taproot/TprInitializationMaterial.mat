@@ -71,7 +71,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _VeinMaxOre: 100
+    - _VeinMaxOre: 1000
     - _VeinMinOre: 2
     - _VeinThreshold: 0.75
     - _ZWrite: 1
